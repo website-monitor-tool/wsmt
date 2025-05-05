@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Status Page</title>
+  <meta name="description" content="Provides real-time monitoring and status updates for registered services.">
+  <meta name="keywords" content="status page, website monitoring, uptime monitoring, downtime alerts, server status">
+
+  <meta property="og:title" content="Status Page">
+  <meta property="og:description" content="Check the real-time status of registered services.">
+  <meta property="og:type" content="website">
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f5f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #0747a6;
+      color: white;
+      padding: 1.5rem 2rem;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .component {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e1e4e8;
+      cursor: help;
+      flex-wrap: wrap;
+    }
+
+    .component:last-child {
+      border-bottom: none;
+    }
+
+    .info-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .service-name {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .uptime-badge {
+      font-size: 13px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.4s ease-out;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .dot {
+      margin-top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    .dot.operational {
+      background-color: #36b37e;
+    }
+
+    .dot.degraded {
+      background-color: #ffab00;
+    }
+
+    .dot.down {
+      background-color: #ff5630;
+    }
+
+    h2 {
+      color: #172b4d;
+    }
+
+    @media (max-width: 600px) {
+      .component {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .status {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>WASM Monitor Tool</h1>
+    <% if (headerStatus) { %>
+      <p>
+        <%= headerStatus %>
+      </p>
+      <% } %>
+  </header>
+
+  <div class="container" id="service-container">
+    <h2>Registered Services</h2>
+    <hr>
+
+    <% Object.keys(service).forEach(key=> {
+      const { serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText } = service[key];
+      %>
+      <div class="component" id="<%= key %>" title="<%= serviceDescription || 'No description provided' %>">
+
+        <div class="info-block">
+          <!-- Service name with icon -->
+          <span class="service-name">
+            <%= key %>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                class="bi bi-question-circle-fill" viewBox="0 0 16 16"
+                style="vertical-align: middle; margin-left: 6px; cursor: help;">
+                <path
+                  d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247m2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927z" />
+              </svg>
+          </span>
+
+          <% if (onlineSinceHumanReadable) { %>
+            <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
+            <% } else { %>
+              <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
+              <% } %>
+        </div>
+
+        <div class="status">
+          <span class="dot <%= status %>"></span>
+          <span class="status-text">
+            <%= statusText %>
+          </span>
+        </div>
+      </div>
+      <% }) %>
+
+
+  </div>
+
+  <script>
+    function fetchStatus() {
+      fetch('/api/status')
+        .then(response => response.json())
+        .then(services => {
+          const container = document.getElementById('service-container');
+          const receivedKeys = new Set(Object.keys(services));
+
+          // Remove services not in the response with fade-out
+          const currentComponents = container.querySelectorAll('.component');
+          currentComponents.forEach(component => {
+            if (!receivedKeys.has(component.id)) {
+              component.classList.add('fade-out');
+              setTimeout(() => component.remove(), 400);
+            }
+          });
+
+          // Add or update services
+          Object.keys(services).forEach(key => {
+            let serviceElement = document.getElementById(key);
+            const service = services[key];
+
+            if (!serviceElement) {
+              const div = document.createElement('div');
+              div.className = 'component fade-in';
+              div.id = key;
+              div.title = service.serviceDescription || 'No description provided';
+
+              let uptimeBadge = '';
+              if (service.onlineSinceHumanReadable) {
+                uptimeBadge = `<span class="uptime-badge">🕒 Online for ${service.onlineSinceHumanReadable}</span>`;
+              } else {
+                uptimeBadge = `<span class="uptime-badge">❌ Offline for ${service.lastSeenHumanReadable}</span>`;
+              }
+
+              div.innerHTML = `
+      <div class="info-block">
+        <span class="service-name">${key}</span>
+        ${uptimeBadge}
+      </div>
+      <div class="status">
+        <span class="dot ${service.status}"></span>
+        <span class="status-text">${service.statusText}</span>
+      </div>
+    `;
+              container.appendChild(div);
+            } else {
+              const dot = serviceElement.querySelector('.dot');
+              const statusText = serviceElement.querySelector('.status-text');
+              dot.className = `dot ${service.status}`;
+              statusText.textContent = service.statusText;
+            }
+          });
+
+        })
+        .catch(err => {
+          console.error('Error fetching status:', err);
+        });
+    }
+
+    // Poll every 5 seconds
+    setInterval(fetchStatus, 5000);
+    fetchStatus();
+  </script>
+
+</body>
+
+</html>

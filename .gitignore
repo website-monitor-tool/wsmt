@@ -1,0 +1,13 @@
+node_modules
+
+#spell checker
+.cspell
+
+#vscode related
+.vscode 
+
+#builds
+# build/
+
+# misc
+blueprint.png

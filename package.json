@@ -1,0 +1,62 @@
+{
+  "name": "website-monitor-tool",
+  "type": "module",
+  "version": "0.1.2",
+  "moduleResolution": "nodenext",
+  "description": "Web socket powered tool to alert if a website goes down.",
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc && pnpm run copy-view",
+    "copy-view": "ncp src/view build/view",
+    "demo-server-start": "pnpm run build && node examples/mothership.js",
+    "demo1-start": "pnpm run build && node examples/demo_website.js",
+    "demo2-start": "pnpm run build && node examples/demo_website_2.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "down_detector",
+    "website monitoring",
+    "web sockets",
+    "website downtime",
+    "uptime monitoring"
+  ],
+  "files": [
+    "build"
+  ],
+  "author": {
+    "name": "Nihal Navath",
+    "email": "contact@nihalnavath.com",
+    "url": "https://nihalnavath.com"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.24.0",
+    "@tsconfig/node16": "^1.0.4",
+    "@types/express": "^5.0.1",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "debug": "^4.4.0",
+    "eslint": "^9.24.0",
+    "eslint-config-love": "^119.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0",
+    "globals": "^16.0.0",
+    "prettier": "3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "ncp": "^2.0.0",
+    "pretty-ms": "^8.0.0",
+    "ws": "^8.18.1"
+  }
+}
