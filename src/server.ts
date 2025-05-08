@@ -1,15 +1,30 @@
 // mother-ship
 // website status monitor tool (WSMT)
 
-// TODO: make it use wss (useless since no data is being transmitted?
+// TODO: make it use wss (useless since no data is being transmitted?)
 // Add ability to have whitelisted ip addresses
 
 import { WebSocketServer, type AddressInfo, type WebSocket } from 'ws';
-import { createServer, IncomingMessage } from 'http';
+import { createServer } from 'http';
 import prettyMilliseconds from 'pretty-ms';
 import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
+import debug from 'debug';
+const log = debug('wsmt:server');
+
+if (process.argv.includes('--debug')) {
+  const validScopes = ['server', '*'];
+  const passedScopes = process.argv[process.argv.indexOf('--debug') + 1] || '*';
+  
+  for (const scope of passedScopes.split(",")) {
+    if (!validScopes.includes(scope.trim())) {
+      throw new Error(`Invalid debug scope passed: '${scope}'. Can only be one or a combination of the following: ${validScopes.join(', ')}`);
+    }
+  }
+  
+  debug.enable(passedScopes === '*' ? '*' : `wsmt:${passedScopes}`);
+}
 
 interface StatusWebServerOptions {
   enabled?: boolean;
@@ -56,7 +71,7 @@ export class Wsmt {
     // start the status checker
 
     setInterval(() => {
-      console.log(this.websiteStatus)
+      log(this.websiteStatus)
     }, 2000);
   }
 
@@ -77,7 +92,6 @@ export class Wsmt {
       });
     }
 
-    // handle errors on the server side
     this.wss.on('error', (error) => {
       // Do something with the error, such as logging it or sending a notification
       console.error(error);
@@ -105,7 +119,7 @@ export class Wsmt {
 
       socket.name = client.name
 
-      console.log(`A new connection from ${socket.name}`);
+      log(`A new connection from ${socket.name}`);
       if (!this.statuses[socket.name]) {
         this.statuses[socket.name] = {};
       }
@@ -114,7 +128,7 @@ export class Wsmt {
       this.statuses[socket.name].status = "operational";
 
       if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
-        console.log(`${socket.name} is back!`)
+        log(`${socket.name} is back!`)
         this.statuses[socket.name].onlineSince = Date.now();
         this.statuses[socket.name].status = "operational";
         //clearInterval(recall);
@@ -126,18 +140,18 @@ export class Wsmt {
 
         if (msg.type === "service-description") {
           this.statuses[socket.name].serviceDescription = msg.serviceDescription
-          console.log(`Client ${socket.name} described: ${msg.serviceDescription}`);
+          log(`Client ${socket.name} described: ${msg.serviceDescription}`);
         }
       });
 
       socket.on('close', (code: number) => {
         if (code === 1000) {
-          console.log(`normal closure from ${socket.name}`);
+          log(`normal closure from ${socket.name}`);
           this.remove_record(socket.name);
           return;
         }
         // move into down function
-        console.log(`${socket.name} seems to have gone offline!`);
+        log(`${socket.name} seems to have gone offline!`);
 
         if (!this.statuses[socket.name]) {
           this.statuses[socket.name] = {};

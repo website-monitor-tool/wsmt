@@ -8,8 +8,7 @@ const wsmt = new Wsmt({
     port: 1010
   },
   callback: (name) => {
-    console.log(`ALERT! ${name} went down!`);
-    console.log(wsmt.getWebsiteStatus);
+    console.log(`Alert! ${name} just went down!`);
     setTimeout(() => {
       console.log(wsmt.websiteStatus);
     }, 5000); // Wait 5 seconds to see meaningful human-readable time

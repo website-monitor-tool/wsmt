@@ -2,40 +2,49 @@
 // website status monitor tool (WSMT)
 // TODO: make it use wss (useless since no data is being transmitted?
 // Add ability to have whitelisted ip addresses
-// Make use of ws.sendMessage to send messages when a website goes down/ clean website closure etc instead of logs!
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import prettyMilliseconds from 'pretty-ms';
 import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
+import debug from 'debug';
+const log = debug('wsmt:server');
+if (process.argv.includes('--debug')) {
+    const validScopes = ['server', '*'];
+    const passedScopes = process.argv[process.argv.indexOf('--debug') + 1] || '*';
+    for (const scope of passedScopes.split(",")) {
+        if (!validScopes.includes(scope.trim())) {
+            throw new Error(`Invalid debug scope passed: '${scope}'. Can only be one or a combination of the following: ${validScopes.join(', ')}`);
+        }
+    }
+    debug.enable(passedScopes === '*' ? '*' : `wsmt:${passedScopes}`);
+}
 export class Wsmt {
     options;
     wss;
-    statuses; // { [key: string]: any }
+    statuses;
     _running = false;
     address;
     callback;
     SERVER_SECRET_KEY;
     recallInterval;
-    // strictMode: boolean; > what I could have meant was if strict mode is enabled, do NOT allow the website to run if status checker
-    // is not connected
+    // strictMode: boolean; > TODO: If strict mode is enabled, prevent the website from running unless the status checker is connected.
     constructor(options) {
         this.options = options;
         this.statuses = {};
         this._running = true;
         this.address = undefined;
-        //rest all below are redundant? access everything using this.options?
         this.SERVER_SECRET_KEY = options.password;
         this.callback = options.callback;
         //this.strictMode = false;
         this.recallInterval = undefined;
         // start the status checker
         setInterval(() => {
-            console.log(this.websiteStatus);
+            log(this.websiteStatus);
         }, 2000);
     }
-    // TF EVERYTHING IS IN INIT?????
+    // TODO: Split code and move it into functions.
     init = () => {
         // if ((options.server != null) && options.port) {
         //   throw new TypeError('Only one of the "port" or "server" options must be specified');
@@ -72,14 +81,14 @@ export class Wsmt {
         this.wss.on('connection', (socket, req, client) => {
             socket.on('error', console.error);
             socket.name = client.name;
-            console.log(`A new connection from ${socket.name}`);
+            log(`A new connection from ${socket.name}`);
             if (!this.statuses[socket.name]) {
                 this.statuses[socket.name] = {};
             }
             this.statuses[socket.name].onlineSince = Date.now();
             this.statuses[socket.name].status = "operational";
             if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
-                console.log(`${socket.name} is back!`);
+                log(`${socket.name} is back!`);
                 this.statuses[socket.name].onlineSince = Date.now();
                 this.statuses[socket.name].status = "operational";
                 //clearInterval(recall);
@@ -89,17 +98,17 @@ export class Wsmt {
                 const msg = JSON.parse(data.toString());
                 if (msg.type === "service-description") {
                     this.statuses[socket.name].serviceDescription = msg.serviceDescription;
-                    console.log(`Client ${socket.name} described: ${msg.serviceDescription}`);
+                    log(`Client ${socket.name} described: ${msg.serviceDescription}`);
                 }
             });
             socket.on('close', (code) => {
                 if (code === 1000) {
-                    console.log(`normal closure from ${socket.name}`);
+                    log(`normal closure from ${socket.name}`);
                     this.remove_record(socket.name);
                     return;
                 }
                 // move into down function
-                console.log(`${socket.name} seems to have gone offline!`);
+                log(`${socket.name} seems to have gone offline!`);
                 if (!this.statuses[socket.name]) {
                     this.statuses[socket.name] = {};
                 }
