@@ -150,7 +150,7 @@ export class Wsmt {
           this.remove_record(socket.name);
           return;
         }
-        // move into down function
+        // move into a seprate function function
         log(`${socket.name} seems to have gone offline!`);
 
         if (!this.statuses[socket.name]) {

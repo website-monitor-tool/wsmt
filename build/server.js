@@ -1,6 +1,6 @@
 // mother-ship
 // website status monitor tool (WSMT)
-// TODO: make it use wss (useless since no data is being transmitted?
+// TODO: make it use wss (useless since no data is being transmitted?)
 // Add ability to have whitelisted ip addresses
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
@@ -59,7 +59,6 @@ export class Wsmt {
                 console.log(`Status page running at http://localhost:${port}`);
             });
         }
-        // handle errors on the server side
         this.wss.on('error', (error) => {
             // Do something with the error, such as logging it or sending a notification
             console.error(error);

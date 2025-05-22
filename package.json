@@ -7,11 +7,13 @@
   "extends": "@tsconfig/node16/tsconfig.json",
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc && pnpm run copy-view",
+    "build": "concurrently \"tsc\" \"pnpm run copy-view\"",
     "copy-view": "ncp src/view build/view",
-    "demo-server-start": "pnpm run build && node examples/mothership.js --debug server",
-    "demo1-start": "pnpm run build && node examples/demo_website.js",
-    "demo2-start": "pnpm run build && node examples/demo_website_2.js",
+    "demo:server": "node examples/mothership.js --debug server",
+    "demo:site1": "node examples/demo_website.js",
+    "demo:site2": "node examples/demo_website_2.js",
+    "comment": "change the demo script, sometimes server starts later then the sites",
+    "demo": "pnpm run build && concurrently \"pnpm run demo:server\" \"pnpm run demo:site1\" \"pnpm run demo:site2\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -36,9 +38,11 @@
     "@tsconfig/node16": "^1.0.4",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
+    "concurrently": "^9.1.2",
     "debug": "^4.4.0",
     "eslint": "^9.24.0",
     "eslint-config-love": "^119.0.0",
@@ -52,7 +56,6 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",

@@ -22,9 +22,11 @@ export function createWebServer(wsmt: any): Express {
 
   app.get('/', (req, res) => {
     const services = wsmt.websiteStatus;
+    const count = Object.keys(services).length
     res.render('status', {
       headerStatus: 'System Monitor Tool | Powered by wasmt',
-      service: services
+      service: services,
+      count
     });
   });
 
