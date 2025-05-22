@@ -7,6 +7,7 @@
   "extends": "@tsconfig/node16/tsconfig.json",
   "main": "build/index.js",
   "scripts": {
+    "pre-built-once": "mkdir build",
     "build": "concurrently \"tsc\" \"pnpm run copy-view\"",
     "copy-view": "ncp src/view build/view",
     "demo:server": "node examples/mothership.js --debug server",

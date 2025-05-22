@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Create Build Directory
+        run: mkdir -p build
+
       - name: Build the project
         run: pnpm build
 
