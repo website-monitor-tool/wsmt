@@ -85,7 +85,7 @@ pnpm run demo2-start
 ### Running in Separate Terminals
 
 > **NOTE** 
-Running these commands in separate terminals makes processes easier to track, keeps logs properly separated, and simplifies debugging. Hence if you are looking to develop, I would suggest following the [step-by-step setup](#step-by-step-setup)
+Running these commands in separate terminals makes processes easier to track, keeps logs properly separated, and simplifies debugging. Hence if you are looking to develop, I would suggest following the [step-by-step setup](#step-by-step-setup).
 
 ### Demo Behavior
 
