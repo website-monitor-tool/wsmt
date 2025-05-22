@@ -7,7 +7,7 @@ node_modules
 .vscode 
 
 #builds
-# build/
+build/
 
 # misc
 blueprint.png
