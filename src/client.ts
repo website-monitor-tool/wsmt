@@ -12,6 +12,7 @@
     serviceDescription?: string,
     address: Address;
     recallInterval?: number;
+    // strictMode: boolean; > TODO: If strict mode is enabled, prevent the website from running unless the status checker is connected.
   }
 
   export class WsmtClient {

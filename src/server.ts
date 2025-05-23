@@ -58,7 +58,6 @@ export class Wsmt {
   public callback: (name: string) => void;
   private SERVER_SECRET_KEY: string;
   recallInterval: number | undefined;
-  // strictMode: boolean; > TODO: If strict mode is enabled, prevent the website from running unless the status checker is connected.
 
   constructor(private options: ConstructorOptions) {
     this.statuses = {};
@@ -70,9 +69,10 @@ export class Wsmt {
     this.recallInterval = undefined;
     // start the status checker
 
+    log(this.websiteStatus)
     setInterval(() => {
       log(this.websiteStatus)
-    }, 2000);
+    }, 10000);
   }
 
   // TODO: Split code and move it into functions.

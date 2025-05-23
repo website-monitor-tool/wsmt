@@ -69,17 +69,17 @@ pnpm install
 
 2. Run the server-side code:
 ```bash
-pnpm run demo-server-start
+pnpm run demo:server
 ```
 
 3. In another terminal, Run the first demo website:
 ```bash
-pnpm run demo1-start
+pnpm run demo:site1
 ```
 
 4. (Optional) Run the second demo website in a separate terminal:
 ```bash
-pnpm run demo2-start
+pnpm run demo:site2
 ```
 
 ### Running in Separate Terminals
@@ -92,3 +92,34 @@ Running these commands in separate terminals makes processes easier to track, ke
 Visit these routes to see different behaviors:
 - `/crash` - Simulates a server error
 - Other routes - Normal website behavior
+
+### Development
+The project makes it easier to develop using live reloading with the help of `nodemon`, `tsc`, `browser-sync` and `chokidar-cli`. This setup ensures any change in your TypeScript code or view files is automatically compiled, served, and reflected in the browser — without needing manual restarts or reloads.
+
+Start the full live development environment:
+This will:
+- Watch and recompile TypeScript files
+- Use nodemon for automatic restarts
+- Copy view files on change
+- Start a LiveReload server to refresh the browser automatically
+```bash
+pnpm run dev
+```
+
+Open the demo site:
+Make sure you're running `pnpm run dev` in another terminal, then visit:
+```bash
+http://localhost:2020
+```
+This is the live version.
+
+##### Run demo website (optional)
+In another terminal open up the demo website
+```bash
+pnpm run dev:site1
+```
+
+if you would like the second demo site also, run
+```bash
+pnpm run dev:site2
+```
