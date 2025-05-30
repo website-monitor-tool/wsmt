@@ -204,6 +204,12 @@
       border-top: 1px dotted #ddd;
     }
 
+    .no-services{
+      background-color: white;
+      padding: 1rem;
+      border-radius: 20px;
+    }
+
     @media (max-width: 600px) {
       .component {
         flex-direction: column;
@@ -286,10 +292,12 @@
 
   <script>
     const serviceCounter = document.getElementById("total-services-count");
+    let noServicesEverAdded = true; 
+
     function fetchStatus() {
       fetch('/api/status')
         .then(response => response.json())
-        .then(services => {
+        .then(services => { 
           const container = document.getElementById('service-container');
           const receivedKeys = new Set(Object.keys(services));
 
@@ -303,22 +311,35 @@
             }
           });
 
+          if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0){
+            const noServiceDiv = document.getElementsByClassName("no-services")[0];
+            noServiceDiv.style.display = "block";
+            noServiceDiv.innerHTML = "No registered services found, <a href='/docs/register'>register one?</a>"
+          }
+
           // Add or update services
           Object.keys(services).forEach(key => {
-            let serviceElement = document.getElementById(key);
+            if (noServicesEverAdded) noServicesEverAdded = false;
+
+            const serviceElement = document.getElementById(key);
             const service = services[key];
 
             if (!serviceElement) {
               serviceCounter.innerText = parseInt(serviceCounter.innerText) + 1;
-              const noServiceDiv = document.getElementsByClassName("no-services");
-              if (noServiceDiv.length) {
-                noServiceDiv[0].style.display = "none";
+
+              noServiceDiv = document.getElementsByClassName("no-services")[0];
+
+              if (noServiceDiv) {
+                noServiceDiv.style.display = "none";
               }
 
               const div = document.createElement('div');
               div.className = 'component fade-in';
               div.id = key;
               div.title = service.serviceDescription || 'No description provided';
+
+              // handle ctrl + click
+              div.addEventListener("click", goToWebsite)
 
               let uptimeBadge = '';
               if (service.onlineSinceHumanReadable) {
