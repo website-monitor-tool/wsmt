@@ -3,6 +3,7 @@ import { Wsmt } from '../build/index.js';
 const wsmt = new Wsmt({
   port: 1234,
   password: 'se$curePwD%^&',
+  persistData: true,
   webServerOptions: {
     enabled: true,
     port: 1010

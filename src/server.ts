@@ -11,19 +11,21 @@ import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
 import debug from 'debug';
+import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getDowntimesGroupedByDayAndService } from './persistence/database.js';
 const log = debug('wsmt:server');
 
 if (process.argv.includes('--debug')) {
   const validScopes = ['server', '*'];
   const passedScopes = process.argv[process.argv.indexOf('--debug') + 1] || '*';
-  
+
   for (const scope of passedScopes.split(",")) {
     if (!validScopes.includes(scope.trim())) {
       throw new Error(`Invalid debug scope passed: '${scope}'. Can only be one or a combination of the following: ${validScopes.join(', ')}`);
     }
   }
-  
+
   debug.enable(passedScopes === '*' ? '*' : `wsmt:${passedScopes}`);
+  log(`enabled debug mode with the following scopes:- ${passedScopes.split(" ")}`)
 }
 
 interface StatusWebServerOptions {
@@ -36,6 +38,7 @@ interface StatusWebServerOptions {
 interface ConstructorOptions {
   port: number
   password: string
+  persistData: boolean
   webServerOptions?: StatusWebServerOptions;
   callback: (name: string) => void
 }
@@ -49,6 +52,14 @@ interface ws extends WebSocket {
   lastSeen: number
   recallMS: number
 }
+
+type StatusEntry = {
+  id: number;
+  name: string;
+  initial_connection_ms: number;
+  initialConnect: number;
+  last_downtime_ms?: number;
+};
 
 export class Wsmt {
   private wss?: WebSocketServer;
@@ -69,10 +80,11 @@ export class Wsmt {
     this.recallInterval = undefined;
     // start the status checker
 
-    log(this.websiteStatus)
-    setInterval(() => {
-      log(this.websiteStatus)
-    }, 10000);
+    // log(this.websiteStatus)
+    // setInterval(() => {
+    //   //log(this.websiteStatus)
+    //   log(getDowntimesGroupedByDayAndService())
+    // }, 10000);
   }
 
   // TODO: Split code and move it into functions.
@@ -83,6 +95,29 @@ export class Wsmt {
     const HTTPServer = createServer().listen(this.options.port);
     this.wss = new WebSocketServer({ noServer: true });
     console.log(`WSS listening on port ${this.options.port}`);
+
+    let DBdata: StatusEntry[];
+    let AllServiceNamesInDB: string[] = []
+
+    // TODO: make this into a function and then recall when needed, the cache refreshing is done
+    // again which is unnecessary.
+    if (this.options.persistData) {
+      DBdata = this.reloadCache()["serviceResult"]
+      AllServiceNamesInDB = DBdata.map(row => row.name)
+
+      log("persist mode is enabled. DB data\n" + JSON.stringify(DBdata))
+
+      DBdata.forEach(entry => {
+        console.log(entry.name, 'last_downtime_ms:', entry.last_downtime_ms)
+        this.statuses[entry.name] = {
+          initialConnect: entry.initialConnect,
+          status: entry.last_downtime_ms ? "down" : "operational",
+          lastSeen: entry.last_downtime_ms ?? undefined,
+        };
+      });
+
+      log("Following services has been loaded from the database", AllServiceNamesInDB);
+    }
 
     if (this.options.webServerOptions?.enabled) {
       const app = createWebServer(this);
@@ -114,59 +149,109 @@ export class Wsmt {
       });
     });
 
-    this.wss.on('connection', (socket: ws, req: any, client: {name: string}) => {
-      socket.on('error', console.error);
+    this.wss.on('connection', (socket: ws, req: any, client: { name: string }) => {
+  try {
+    const connection_time_ms = Date.now();
+    socket.on('error', console.error);
 
-      socket.name = client.name
+    socket.name = client.name;
 
-      log(`A new connection from ${socket.name}`);
-      if (!this.statuses[socket.name]) {
-        this.statuses[socket.name] = {};
-      }
+    log(`A new connection from ${socket.name}`);
 
-      this.statuses[socket.name].onlineSince = Date.now()
+    // refresh DB data to check if new services were added after the class has been initialized.
+    // unnecessary repetition of code, its late night and I just want this to work for now lol.
+    DBdata = this.reloadCache()["serviceResult"]
+    console.log(DBdata)
+    AllServiceNamesInDB = DBdata.map(row => row.name)
+
+    DBdata.forEach(entry => {
+      console.log(entry.name, 'last_downtime_ms:', entry.last_downtime_ms)
+      this.statuses[entry.name] = {
+        initialConnect: entry.initialConnect,
+        status: entry.last_downtime_ms ? "down" : "operational",
+        lastSeen: entry.last_downtime_ms ?? undefined,
+      };
+    });
+
+    // end of repeated code
+
+    if (!this.statuses[socket.name]) {
+      this.statuses[socket.name] = {};
+    }
+
+    this.statuses[socket.name].onlineSince = connection_time_ms
+    this.statuses[socket.name].status = "operational";
+
+    if (this.options.persistData && !AllServiceNamesInDB.includes(socket.name)) {
+      saveStatus(socket.name, connection_time_ms);
+    }
+
+    const entry = DBdata.find(item => item.name === socket.name);
+    if (this.options.persistData && entry && entry.last_downtime_ms) {
+      closeDowntime(entry["id"], connection_time_ms)
+    }
+
+    if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
+      log(`${socket.name} is back!`)
       this.statuses[socket.name].status = "operational";
+    }
 
-      if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
-        log(`${socket.name} is back!`)
-        this.statuses[socket.name].onlineSince = Date.now();
-        this.statuses[socket.name].status = "operational";
-        //clearInterval(recall);
-      }
-      //put only verification inside try catch
-
-      socket.on("message", (data) => {
+    socket.on("message", (data) => {
+      try {
         const msg = JSON.parse(data.toString());
-
         if (msg.type === "service-description") {
           this.statuses[socket.name].serviceDescription = msg.serviceDescription
           log(`Client ${socket.name} described: ${msg.serviceDescription}`);
         }
-      });
+      } catch (err) {
+        console.error('message handler threw:', err);
+      }
+    });
 
-      socket.on('close', (code: number) => {
+    log(this.statuses)
+
+    socket.on('close', (code: number) => {
+      try {
+        const lastSeen = Date.now();
+
+        console.log("GOT DCCCCCCCCCCCCCCCCC", code)
         if (code === 1000) {
           log(`normal closure from ${socket.name}`);
+          this.statuses[socket.name] = {};
           this.remove_record(socket.name);
+          console.log(this.statuses)
           return;
         }
-        // move into a seprate function function
-        log(`${socket.name} seems to have gone offline!`);
+
+        log(`${socket.name} disconnected with code ${code}`);
+
+        const entry = DBdata.find(item => item.name === socket.name);
+
+        if (this.options.persistData && entry) {
+          log("registering downtime");
+          registerDowntime(entry["id"], lastSeen);
+        } else {
+          log("not registering downtime because persist mode or entry check failed");
+        }
 
         if (!this.statuses[socket.name]) {
           this.statuses[socket.name] = {};
         }
 
-        const lastSeen = Date.now();
         this.statuses[socket.name].lastSeen = lastSeen;
         this.statuses[socket.name].status = "down";
-        this.statuses[socket.name].lastSeenHumanReadable =
-          prettyMilliseconds(lastSeen); //this is wrong value, update
-        this.callback(socket.name)
-
-      });
+        this.callback(socket.name);
+      } catch (err) {
+        console.error('close handler threw:', err);
+      }
     });
-    return this.wss;
+
+  } catch (err) {
+    console.error('connection handler threw:', err);
+    socket.close(1011, 'Internal error');
+  }
+});
+return this.wss;
   };
 
   close(): boolean {
@@ -212,6 +297,26 @@ export class Wsmt {
     console.log(err)
   }
 
+  private fetchDatabaseServices() {
+    return loadAllStatuses() as StatusEntry[];
+  }
+
+  private reloadCache() {
+    const serviceResult = this.fetchDatabaseServices().map(row => ({
+      ...row,
+      initialConnect: row.initial_connection_ms!
+    }));
+
+    const AllServiceNamesInDB = serviceResult.map(row => row.name);
+
+    console.log(AllServiceNamesInDB)
+
+    return {
+      AllServiceNamesInDB,
+      serviceResult
+    };
+  }
+
   private getStatusText(status: string): string {
     switch (status) {
       case 'operational': return 'Operational';
@@ -241,11 +346,14 @@ export class Wsmt {
       const statusText = this.getStatusText(data.status)
 
       const isAvailable = data.status === "operational";
-      const onlineDuration = isAvailable ? prettyMilliseconds(now - data.onlineSince, { secondsDecimalDigits: 0 }) : "";
+      const onlineDuration = isAvailable && data.onlineSince && isFinite(now - data.onlineSince)
+        ? prettyMilliseconds(now - data.onlineSince, { secondsDecimalDigits: 0 })
+        : "";
       const lastSeenTime = data.lastSeen || "";
-      const lastSeenDuration = data.lastSeen ? prettyMilliseconds(diffMs, { secondsDecimalDigits: 0 }) : "";
+      const lastSeenDuration = data.lastSeen ? prettyMilliseconds(diffMs, { secondsDecimalDigits: 0 }) : "a while ago";
 
       result[site] = {
+        initialConnect: data.initialConnect,
         available: isAvailable,
         status: data.status,
         statusText,

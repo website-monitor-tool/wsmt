@@ -39,11 +39,17 @@
     "email": "contact@nihalnavath.com",
     "url": "https://nihalnavath.com"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
   "license": "ISC",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.24.0",
     "@tsconfig/node16": "^1.0.4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/debug": "^4.1.12",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
@@ -63,10 +69,12 @@
     "globals": "^16.0.0",
     "nodemon": "^3.1.10",
     "prettier": "3.2.5",
+    "supports-color": "^10.2.2",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "better-sqlite3": "^11.10.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",

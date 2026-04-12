@@ -25,6 +25,8 @@
       --status-operational-bg: #D1FAE5;
       --status-degraded-bg: #fef9c3;
       --status-down-bg: #fee2e2;
+
+      --text-gray: #525c6e;
     }
 
     body {
@@ -41,6 +43,20 @@
       text-align: center;
     }
 
+    .description-details {
+      background-color: #f9fafb;
+      color: #4b5563;
+      padding: 0.75rem;
+    }
+
+    .description-details p {
+      margin: 0;
+    }
+
+    .m-0 {
+      margin: 0;
+    }
+
     .container {
       border-radius: 10px;
     }
@@ -50,21 +66,28 @@
       margin: 2rem auto;
     }
 
+    .summary-content {
+      margin: 13px 0px 10px;
+    }
+
     .component {
       display: flex;
       align-items: center;
-      padding: 1rem;
-      cursor: help;
+      padding: 1rem 1rem 0.5rem 1rem;
       flex-wrap: wrap;
 
       border-radius: 10px;
       background-color: white;
-      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05);
-      margin: 13px 0 10px;
+      /* box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05); */
     }
 
     .component:last-child {
       border-bottom: none;
+    }
+
+    .component:hover {
+      filter: invert(2%);
+      cursor: pointer;
     }
 
     .info-block {
@@ -83,7 +106,7 @@
     }
 
     .uptime-badge {
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .status {
@@ -121,11 +144,11 @@
     }
 
     .fade-in {
-      animation: fadeIn 0.4s ease-out;
+      animation: fadeIn 0.8s ease-out;
     }
 
     .fade-out {
-      animation: fadeOut 0.4s ease-out;
+      animation: fadeOut 0.8s ease-out;
     }
 
     @keyframes blink {
@@ -187,7 +210,6 @@
       min-width: 1.4em;
       border-radius: 50%;
       font-size: 0.7em;
-
     }
 
     h2 {
@@ -204,10 +226,75 @@
       border-top: 1px dotted #ddd;
     }
 
-    .no-services{
+    .no-services {
       background-color: white;
       padding: 1rem;
       border-radius: 20px;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .information-section {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .information-section svg {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      transition: 0.3s;
+    }
+
+    .details-content {
+      background-color: white;
+      max-height: 1000px;
+      transition: max-height 0.4s ease-in-out;
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .text-gray {
+      color: var(--text-gray);
+    }
+
+    .status-bar-grid {
+      display: grid;
+      grid-template-columns: repeat(30, minmax(0, 1fr));
+      gap: 2px;
+      height: 24px;
+      background-color: #e5e7eb;
+      padding: 3px;
+      border-radius: 0.25rem;
+    }
+
+    .status-bar {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .expanded {
+      padding: 0rem 1rem 1rem 1rem !important;
+    }
+
+    .status-bar-online {
+      background-color: #22c55e;
+    }
+
+    .status-bar-offline {
+      background-color: #ef4444;
+    }
+
+    .status-bar-degraded {
+      background-color: #f59e0b;
     }
 
     @media (max-width: 600px) {
@@ -243,77 +330,149 @@
       </h2>
     </div>
 
-    <div class="container" id="service-container">
-      <% if (Object.keys(service).length> 0) { %>
-        <% Object.keys(service).forEach(key=> {
-          const { serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText } =
-          service[key];
-          %>
-          <div class="component" id="<%= key %>" title="<%= serviceDescription || 'No description provided' %>">
-            <div class="info-block">
-              <!-- Service name with icon -->
-              <span class="service-name">
-                <%= key %>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="bi bi-info-circle" style="margin-left: 6px;" viewBox="0 0 16 16">
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                    <path
-                      d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
-                  </svg>
-              </span>
-
-              <div class="status status-<%= status %>">
-                <span class="dot <%= status %>"></span>
-                <span class="status-text">
-                  <%= statusText %>
-                </span>
-              </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="information-section">
-              <% if (onlineSinceHumanReadable) { %>
-                <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
-                <% } else { %>
-                  <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
-                  <% } %>
-            </div>
-
-          </div>
-          <% }) %>
-            <% } else { %>
-              <div class="no-services">
-                No registered services found, <a href="/docs/register">register your first service.</a>
-              </div>
-              <% } %>
+    <div class="no-services <%= Object.keys(service).length > 0 ? 'hidden' : 'show' %>">
+      No registered services found, <a href="/docs/register">register your first service.</a>
     </div>
+
+    <div class="container" id="service-container">
+      <% Object.keys(service).forEach(key=> {
+        const { initialConnect, serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText }
+        =
+        service[key];
+        %>
+        <div class="summary-content">
+          <% console.log(initialConnect) %>
+            <div class="component" onclick="openComponent(this)" id="<%= key %>"
+              title="<%= serviceDescription || 'No description provided' %>">
+              <div class="info-block">
+                <!-- Service name with icon -->
+                <span class="service-name">
+                  <%= key %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                      class="bi bi-info-circle" style="margin-left: 6px;" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                      <path
+                        d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                    </svg>
+                </span>
+
+                <div class="status status-<%= status %>">
+                  <span class="dot <%= status %>"></span>
+                  <span class="status-text">
+                    <%= statusText %>
+                  </span>
+                </div>
+              </div>
+
+              <hr class="divider">
+
+              <div class="information-section">
+                <% if (onlineSinceHumanReadable) { %>
+                  <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
+                  <% } else { %>
+                    <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
+                    <% } %>
+
+                      <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+              </div>
+            </div>
+
+            <div class="details-content">
+              <div class="status-bar-grid-container">
+                <h3 style="margin: 0; padding: 10px 5px 10px 5px; font-size: 0.875rem;" class="text-gray">Recent Uptime
+                  (Last 30 Days)</h3>
+                <div class="status-bar-grid" id="status-bars-demo_website_1">
+                  <% for(var i=0; i< 30; i++) {%>
+                    <div class="status-bar-day status-bar-online" title="Day <%= i + 1 %>: online"></div>
+                    <% } %>
+                </div>
+              </div>
+
+              <h3 class="text-gray" style="font-size: 0.875rem; margin: 0; padding: 10px 5px 10px 5px;">Additional
+                Information</h3>
+              <div class="description-details text-gray-600 bg-gray-50 p-3 rounded-md">
+                <!-- <p><strong>Region:</strong> us-east-1</p> -->
+                <p><strong>Registered:</strong> <span id="service-registered-on">
+                  <%= console.log('initialConnect:', initialConnect) %>
+                    <%= new Date(initialConnect).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %> at <%= new Date(initialConnect).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) %>
+                  </span></p>
+                <p><strong>Average Latency:</strong> <span id="latency-demo_website_1">35ms</span></p>
+                <p>This section can hold more dynamic data, incident reports, or specific metrics for demo_website_1.
+                </p>
+              </div>
+              <div style="text-align: right;">
+                <a href="/status/id">
+                  <button style="background: transparent; border: 0; color: #2563eb; cursor: pointer;" type="button">
+                    View Full Logs
+                  </button>
+                </a>
+              </div>
+            </div>
+        </div>
+        <% }) %>
+
+    </div>
+  </div>
   </div>
 
   <script>
     const serviceCounter = document.getElementById("total-services-count");
-    let noServicesEverAdded = true; 
+    const detailedView = true;
+    let noServicesEverAdded = true;
+
+    if (detailedView) {
+      const contentArray = document.getElementsByClassName("summary-content");
+      for (let i = 0; i < contentArray.length; i++) {
+        const element = contentArray[i];
+
+        const component = element.querySelector(".component");
+        const arrow = component.querySelector(".arrow");
+
+        const detailsContent = element.querySelector(".details-content");
+
+        detailsContent.classList.add("expanded");
+        arrow.style.transform = "rotate(90deg)";
+      }
+    }
+
+    function openComponent(element) {
+      const arrow = element.querySelector(".arrow");
+      const contentDetails = element.nextElementSibling
+      const isOpen = contentDetails.classList.contains("expanded");
+
+      if (isOpen) {
+        contentDetails.style.maxHeight = "0px";
+        setTimeout(() => { contentDetails.classList.remove("expanded") }, 400)
+      } else {
+        contentDetails.style.maxHeight = "1000px";
+        contentDetails.classList.add("expanded");
+      }
+    }
 
     function fetchStatus() {
       fetch('/api/status')
         .then(response => response.json())
-        .then(services => { 
+        .then(services => {
           const container = document.getElementById('service-container');
           const receivedKeys = new Set(Object.keys(services));
 
           // Remove services not in the response with fade-out
           const currentComponents = container.querySelectorAll('.component');
           currentComponents.forEach(component => {
-            if (!receivedKeys.has(component.id)) {
-              serviceCounter.innerText = parseInt(serviceCounter.innerText) - 1;
-              component.classList.add('fade-out');
-              setTimeout(() => component.remove(), 400);
-            }
-          });
+          if (!receivedKeys.has(component.id)) {
+            serviceCounter.innerText = parseInt(serviceCounter.innerText) - 1;
+            const wrapper = component.closest('.summary-content') || component;
+            wrapper.classList.add('fade-out');
+            setTimeout(() => wrapper.remove(), 800);
+          }
+        });
 
-          if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0){
+          if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0) {
             const noServiceDiv = document.getElementsByClassName("no-services")[0];
-            noServiceDiv.style.display = "block";
+            noServiceDiv.classList.replace("hidden", "show")
             noServiceDiv.innerHTML = "No registered services found, <a href='/docs/register'>register one?</a>"
           }
 
@@ -330,7 +489,7 @@
               noServiceDiv = document.getElementsByClassName("no-services")[0];
 
               if (noServiceDiv) {
-                noServiceDiv.style.display = "none";
+                noServiceDiv.classList.replace("show", "hidden");
               }
 
               const div = document.createElement('div');
@@ -338,14 +497,11 @@
               div.id = key;
               div.title = service.serviceDescription || 'No description provided';
 
-              // handle ctrl + click
-              div.addEventListener("click", goToWebsite)
-
               let uptimeBadge = '';
               if (service.onlineSinceHumanReadable) {
                 uptimeBadge = `<span class="uptime-badge">🕒 Online for ${service.onlineSinceHumanReadable}</span>`;
               } else {
-                uptimeBadge = `<span class="uptime-badge">❌ Offline for ${service.lastSeenHumanReadable}</span>`;
+                uptimeBadge = `<span class="uptime-badge">⚠️ Offline for ${service.lastSeenHumanReadable}</span>`;
               }
 
               div.innerHTML = `
