@@ -85,7 +85,6 @@
     disconnect = (): void => {
       console.log(`closing gracefully, cs func called, ${this.ws} ${this.isConnected}`)
       if (this.ws && this.isConnected) {
-        console.log("asasasas")
         this.ws.close(1000, 'Normal closure');
         this.isConnected = false;
       }

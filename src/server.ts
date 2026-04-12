@@ -187,6 +187,7 @@ export class Wsmt {
 
         if (this.options.persistData && !AllServiceNamesInDB.includes(socket.name)) {
           saveStatus(socket.name, connection_time_ms);
+          this.statuses[socket.name].initialConnect = connection_time_ms;
         }
 
         const entry = DBdata.find(item => item.name === socket.name);
