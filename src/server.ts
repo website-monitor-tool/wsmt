@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
 import debug from 'debug';
-import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getDowntimesGroupedByDayAndService } from './persistence/database.js';
+import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getDowntimesGroupedByDayAndService, setCleanClose, resetCleanClose } from './persistence/database.js';
 const log = debug('wsmt:server');
 
 if (process.argv.includes('--debug')) {
@@ -59,6 +59,7 @@ type StatusEntry = {
   initial_connection_ms: number;
   initialConnect: number;
   last_downtime_ms?: number;
+  clean_close: number;
 };
 
 export class Wsmt {
@@ -108,7 +109,8 @@ export class Wsmt {
       log("persist mode is enabled. DB data\n" + JSON.stringify(DBdata))
 
       DBdata.forEach(entry => {
-        console.log(entry.name, 'last_downtime_ms:', entry.last_downtime_ms)
+        if (entry.clean_close) return; // skip clean closed services
+
         this.statuses[entry.name] = {
           initialConnect: entry.initialConnect,
           status: entry.last_downtime_ms ? "down" : "operational",
@@ -150,108 +152,116 @@ export class Wsmt {
     });
 
     this.wss.on('connection', (socket: ws, req: any, client: { name: string }) => {
-  try {
-    const connection_time_ms = Date.now();
-    socket.on('error', console.error);
-
-    socket.name = client.name;
-
-    log(`A new connection from ${socket.name}`);
-
-    // refresh DB data to check if new services were added after the class has been initialized.
-    // unnecessary repetition of code, its late night and I just want this to work for now lol.
-    DBdata = this.reloadCache()["serviceResult"]
-    console.log(DBdata)
-    AllServiceNamesInDB = DBdata.map(row => row.name)
-
-    DBdata.forEach(entry => {
-      console.log(entry.name, 'last_downtime_ms:', entry.last_downtime_ms)
-      this.statuses[entry.name] = {
-        initialConnect: entry.initialConnect,
-        status: entry.last_downtime_ms ? "down" : "operational",
-        lastSeen: entry.last_downtime_ms ?? undefined,
-      };
-    });
-
-    // end of repeated code
-
-    if (!this.statuses[socket.name]) {
-      this.statuses[socket.name] = {};
-    }
-
-    this.statuses[socket.name].onlineSince = connection_time_ms
-    this.statuses[socket.name].status = "operational";
-
-    if (this.options.persistData && !AllServiceNamesInDB.includes(socket.name)) {
-      saveStatus(socket.name, connection_time_ms);
-    }
-
-    const entry = DBdata.find(item => item.name === socket.name);
-    if (this.options.persistData && entry && entry.last_downtime_ms) {
-      closeDowntime(entry["id"], connection_time_ms)
-    }
-
-    if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
-      log(`${socket.name} is back!`)
-      this.statuses[socket.name].status = "operational";
-    }
-
-    socket.on("message", (data) => {
       try {
-        const msg = JSON.parse(data.toString());
-        if (msg.type === "service-description") {
-          this.statuses[socket.name].serviceDescription = msg.serviceDescription
-          log(`Client ${socket.name} described: ${msg.serviceDescription}`);
-        }
-      } catch (err) {
-        console.error('message handler threw:', err);
-      }
-    });
+        const connection_time_ms = Date.now();
+        socket.on('error', console.error);
 
-    log(this.statuses)
+        socket.name = client.name;
 
-    socket.on('close', (code: number) => {
-      try {
-        const lastSeen = Date.now();
+        log(`A new connection from ${socket.name}`);
 
-        console.log("GOT DCCCCCCCCCCCCCCCCC", code)
-        if (code === 1000) {
-          log(`normal closure from ${socket.name}`);
-          this.statuses[socket.name] = {};
-          this.remove_record(socket.name);
-          console.log(this.statuses)
-          return;
-        }
+        // refresh DB data to check if new services were added after the class has been initialized.
+        // unnecessary repetition of code, its late night and I just want this to work for now lol.
+        DBdata = this.reloadCache()["serviceResult"]
+        console.log(DBdata)
+        AllServiceNamesInDB = DBdata.map(row => row.name)
 
-        log(`${socket.name} disconnected with code ${code}`);
+        DBdata.forEach(entry => {
+          if (entry.clean_close) return; // skip clean closed services
 
-        const entry = DBdata.find(item => item.name === socket.name);
+          this.statuses[entry.name] = {
+            initialConnect: entry.initialConnect,
+            status: entry.last_downtime_ms ? "down" : "operational",
+            lastSeen: entry.last_downtime_ms ?? undefined,
+          };
+        });
 
-        if (this.options.persistData && entry) {
-          log("registering downtime");
-          registerDowntime(entry["id"], lastSeen);
-        } else {
-          log("not registering downtime because persist mode or entry check failed");
-        }
+        // end of repeated code
 
         if (!this.statuses[socket.name]) {
           this.statuses[socket.name] = {};
         }
 
-        this.statuses[socket.name].lastSeen = lastSeen;
-        this.statuses[socket.name].status = "down";
-        this.callback(socket.name);
+        this.statuses[socket.name].onlineSince = connection_time_ms
+        this.statuses[socket.name].status = "operational";
+
+        if (this.options.persistData && !AllServiceNamesInDB.includes(socket.name)) {
+          saveStatus(socket.name, connection_time_ms);
+        }
+
+        const entry = DBdata.find(item => item.name === socket.name);
+        if (this.options.persistData && entry) {
+          console.log("reseting clean close")
+          resetCleanClose(entry.id);
+        }
+
+        if (this.options.persistData && entry && entry.last_downtime_ms) {
+          closeDowntime(entry["id"], connection_time_ms)
+        }
+
+        if (socket.name in this.statuses && this.statuses[socket.name].status === "down") {
+          log(`${socket.name} is back!`)
+          this.statuses[socket.name].status = "operational";
+        }
+
+        socket.on("message", (data) => {
+          try {
+            const msg = JSON.parse(data.toString());
+            if (msg.type === "service-description") {
+              this.statuses[socket.name].serviceDescription = msg.serviceDescription
+              log(`Client ${socket.name} described: ${msg.serviceDescription}`);
+            }
+          } catch (err) {
+            console.error('message handler threw:', err);
+          }
+        });
+
+        log(this.statuses)
+
+        socket.on('close', (code: number) => {
+          try {
+            const lastSeen = Date.now();
+
+            console.log("GOT DCCCCCCCCCCCCCCCCC", code)
+            if (code === 1000) {
+              log(`normal closure from ${socket.name}`);
+              const entry = DBdata.find(item => item.name === socket.name);
+              this.remove_record(socket.name);
+              if (this.options.persistData && entry) {
+                setCleanClose(entry.id);
+              }
+              return;
+            }
+
+            log(`${socket.name} disconnected with code ${code}`);
+
+            const entry = DBdata.find(item => item.name === socket.name);
+
+            if (this.options.persistData && entry) {
+              log("registering downtime");
+              registerDowntime(entry["id"], lastSeen);
+            } else {
+              log("not registering downtime because persist mode or entry check failed");
+            }
+
+            if (!this.statuses[socket.name]) {
+              this.statuses[socket.name] = {};
+            }
+
+            this.statuses[socket.name].lastSeen = lastSeen;
+            this.statuses[socket.name].status = "down";
+            this.callback(socket.name);
+          } catch (err) {
+            console.error('close handler threw:', err);
+          }
+        });
+
       } catch (err) {
-        console.error('close handler threw:', err);
+        console.error('connection handler threw:', err);
+        socket.close(1011, 'Internal error');
       }
     });
-
-  } catch (err) {
-    console.error('connection handler threw:', err);
-    socket.close(1011, 'Internal error');
-  }
-});
-return this.wss;
+    return this.wss;
   };
 
   close(): boolean {

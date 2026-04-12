@@ -87,6 +87,18 @@ export const closeDowntime = (
   updateStmt.run(down_to, openDowntime.id);
 };
 
+export const setCleanClose = (service_id: number) => {
+  db.prepare(`
+    UPDATE services SET clean_close = 1 WHERE id = ?
+  `).run(service_id);
+};
+
+export const resetCleanClose = (service_id: number) => {
+  db.prepare(`
+    UPDATE services SET clean_close = 0 WHERE id = ?
+  `).run(service_id);
+};
+
 export const getDowntimesGroupedByDayAndService = () => {
   const stmt = db.prepare(`
     SELECT 

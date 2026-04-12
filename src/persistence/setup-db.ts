@@ -5,7 +5,8 @@ export const setup = (db: Database) => {
         CREATE TABLE IF NOT EXISTS services (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE NOT NULL,
-        initial_connection_ms INTEGER NOT NULL
+        initial_connection_ms INTEGER NOT NULL,
+        clean_close INTEGER NOT NULL DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS service_metrics (
