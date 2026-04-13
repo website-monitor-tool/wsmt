@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
 import debug from 'debug';
-import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getDowntimesGroupedByDayAndService, setCleanClose, resetCleanClose } from './persistence/database.js';
+import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getServiceDailyStatus, setCleanClose, resetCleanClose } from './persistence/database.js';
 const log = debug('wsmt:server');
 
 if (process.argv.includes('--debug')) {
@@ -84,7 +84,7 @@ export class Wsmt {
     // log(this.websiteStatus)
     // setInterval(() => {
     //   //log(this.websiteStatus)
-    //   log(getDowntimesGroupedByDayAndService())
+    //   log(getServiceDailyStatus())
     // }, 10000);
   }
 
@@ -109,9 +109,10 @@ export class Wsmt {
       log("persist mode is enabled. DB data\n" + JSON.stringify(DBdata))
 
       DBdata.forEach(entry => {
-        if (entry.clean_close) return; // skip clean closed services
+        if (entry.clean_close) return;
 
         this.statuses[entry.name] = {
+          id: entry.id,  // add this
           initialConnect: entry.initialConnect,
           status: entry.last_downtime_ms ? "down" : "operational",
           lastSeen: entry.last_downtime_ms ?? undefined,
@@ -167,9 +168,10 @@ export class Wsmt {
         AllServiceNamesInDB = DBdata.map(row => row.name)
 
         DBdata.forEach(entry => {
-          if (entry.clean_close) return; // skip clean closed services
+          if (entry.clean_close) return;
 
           this.statuses[entry.name] = {
+            id: entry.id,  // add this
             initialConnect: entry.initialConnect,
             status: entry.last_downtime_ms ? "down" : "operational",
             lastSeen: entry.last_downtime_ms ?? undefined,
@@ -179,7 +181,12 @@ export class Wsmt {
         // end of repeated code
 
         if (!this.statuses[socket.name]) {
-          this.statuses[socket.name] = {};
+          const entry = DBdata.find(item => item.name === socket.name);
+
+          this.statuses[socket.name] = {
+            id: entry?.id,
+            initialConnect: entry?.initialConnect ?? Date.now(),
+          };
         }
 
         this.statuses[socket.name].onlineSince = connection_time_ms
@@ -191,6 +198,7 @@ export class Wsmt {
         }
 
         const entry = DBdata.find(item => item.name === socket.name);
+        this.statuses[socket.name].id = entry?.id;
         if (this.options.persistData && entry) {
           console.log("reseting clean close")
           resetCleanClose(entry.id);
@@ -364,6 +372,7 @@ export class Wsmt {
       const lastSeenDuration = data.lastSeen ? prettyMilliseconds(diffMs, { secondsDecimalDigits: 0 }) : "a while ago";
 
       result[site] = {
+        id: data.id,
         initialConnect: data.initialConnect,
         available: isAvailable,
         status: data.status,

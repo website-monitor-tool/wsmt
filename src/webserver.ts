@@ -5,7 +5,7 @@
 import express, { Express } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getDowntimesGroupedByDayAndService } from './persistence/database.js';
+import { getServiceDailyStatus } from './persistence/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,17 +22,22 @@ export function createWebServer(wsmt: any): Express {
   });
 
   app.get('/api/down', (req, res) => {
-    res.json(getDowntimesGroupedByDayAndService());
+    res.json(getServiceDailyStatus());
   });
 
   app.get('/', (req, res) => {
     const services = wsmt.websiteStatus;
-    console.log(services)
-    const count = Object.keys(services).length
+    const count = Object.keys(services).length;
+    const downtimes = getServiceDailyStatus();
+
+    console.log('downtimes:', downtimes);
+  console.log('services:', services);
+
     res.render('status', {
       headerStatus: 'System Monitor Tool | Powered by wasmt',
       service: services,
-      count
+      count,
+      downtimes,
     });
   });
 

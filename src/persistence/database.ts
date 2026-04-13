@@ -99,15 +99,37 @@ export const resetCleanClose = (service_id: number) => {
   `).run(service_id);
 };
 
-export const getDowntimesGroupedByDayAndService = () => {
+export const getServiceDailyStatus = () => {
   const stmt = db.prepare(`
     SELECT 
       service_id,
       DATE(datetime(down_from / 1000, 'unixepoch')) as day,
-      COUNT(*) as count,
-      GROUP_CONCAT(id) as ids,
-      GROUP_CONCAT(down_from) as from_times,
-      GROUP_CONCAT(down_to) as to_times
+
+      SUM(
+        CASE 
+          WHEN down_to IS NOT NULL THEN down_to - down_from
+          ELSE (strftime('%s','now') * 1000) - down_from
+        END
+      ) as total_downtime_ms,
+
+      CASE
+        WHEN SUM(
+          CASE 
+            WHEN down_to IS NOT NULL THEN down_to - down_from
+            ELSE (strftime('%s','now') * 1000) - down_from
+          END
+        ) = 0 THEN 'online'
+
+        WHEN SUM(
+          CASE 
+            WHEN down_to IS NOT NULL THEN down_to - down_from
+            ELSE (strftime('%s','now') * 1000) - down_from
+          END
+        ) >= 86400000 THEN 'offline'
+
+        ELSE 'degraded'
+      END as status
+
     FROM downtimes
     GROUP BY day, service_id
     ORDER BY day DESC, service_id ASC

@@ -22,6 +22,8 @@
       --status-degraded-color: #a16207;
       --status-down-color: #b91c1c;
 
+      --status-inactive-color: #c9c7c7;
+
       --status-operational-bg: #D1FAE5;
       --status-degraded-bg: #fef9c3;
       --status-down-bg: #fee2e2;
@@ -69,6 +71,19 @@
     .summary-content {
       margin: 13px 0px 10px;
     }
+
+    .logs-btn {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e40af;
+      background: #eff6ff;
+      border: 0.5px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 6px 14px;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    .logs-btn:hover { opacity: 0.8; }
 
     .component {
       display: flex;
@@ -185,6 +200,10 @@
       background-color: var(--status-down-color);
     }
 
+    .dot.inactive {
+      background-color: var(--status-inactive-color);
+    }
+
     .status-operational {
       background-color: var(--status-operational-bg);
       color: var(--status-operational-color);
@@ -260,6 +279,8 @@
       transition: max-height 0.4s ease-in-out;
       box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05);
       overflow: hidden;
+      border-bottom-right-radius: 10px;
+      border-bottom-left-radius: 10px;
     }
 
     .text-gray {
@@ -293,8 +314,39 @@
       background-color: #ef4444;
     }
 
+    .desc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.desc-tile {
+  background: #f5f5f4; /* or your gray-50 equivalent */
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.desc-tile-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+.desc-tile-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+.desc-tile-value.green { color: #3B6D11; }
+
     .status-bar-degraded {
       background-color: #f59e0b;
+    }
+
+    .status-bar-inactive {
+      background-color: #c9c7c7;
     }
 
     @media (max-width: 600px) {
@@ -336,7 +388,8 @@
 
     <div class="container" id="service-container">
       <% Object.keys(service).forEach(key=> {
-        const { initialConnect, serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText }
+        const { initialConnect, serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText
+        }
         =
         service[key];
         %>
@@ -381,36 +434,94 @@
             </div>
 
             <div class="details-content">
-              <div class="status-bar-grid-container">
-                <h3 style="margin: 0; padding: 10px 5px 10px 5px; font-size: 0.875rem;" class="text-gray">Recent Uptime
-                  (Last 30 Days)</h3>
-                <div class="status-bar-grid" id="status-bars-demo_website_1">
-                  <% for(var i=0; i< 30; i++) {%>
-                    <div class="status-bar-day status-bar-online" title="Day <%= i + 1 %>: online"></div>
-                    <% } %>
-                </div>
-              </div>
+  <div class="status-bar-grid-container">
+    <h3 style="margin: 0; padding: 10px 5px; font-size: 0.875rem;" class="text-gray">
+      Recent Uptime (Last 30 Days)
+    </h3>
 
-              <h3 class="text-gray" style="font-size: 0.875rem; margin: 0; padding: 10px 5px 10px 5px;">Additional
-                Information</h3>
-              <div class="description-details text-gray-600 bg-gray-50 p-3 rounded-md">
-                <!-- <p><strong>Region:</strong> us-east-1</p> -->
-                <p><strong>Registered:</strong> <span id="service-registered-on">
-                  <%= console.log('initialConnect:', initialConnect) %>
-                    <%= new Date(initialConnect).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %> at <%= new Date(initialConnect).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) %>
-                  </span></p>
-                <p><strong>Average Latency:</strong> <span id="latency-demo_website_1">35ms</span></p>
-                <p>This section can hold more dynamic data, incident reports, or specific metrics for demo_website_1.
-                </p>
-              </div>
-              <div style="text-align: right;">
-                <a href="/status/id">
-                  <button style="background: transparent; border: 0; color: #2563eb; cursor: pointer;" type="button">
-                    View Full Logs
-                  </button>
-                </a>
-              </div>
-            </div>
+    <div class="status-bar-grid">
+<% const MS_IN_DAY = 86400000;
+   const serviceData = service[key];
+
+   const registeredDate = new Date(serviceData.initialConnect);
+   const today = new Date();
+
+   // 🔒 validate registration date
+   const isValid = !isNaN(registeredDate.getTime());
+
+   // normalize dates (remove time)
+   const startDate = isValid
+     ? new Date(registeredDate.toISOString().split('T')[0])
+     : new Date(today);
+
+   const todayDate = new Date(today.toISOString().split('T')[0]);
+
+   for (let i = 0; i < 30; i++) {
+
+     const date = new Date(startDate);
+     date.setDate(startDate.getDate() + i);
+
+     const dayStr = date.toISOString().split('T')[0];
+
+     let statusClass = '';
+     let title = dayStr;
+
+     // ❌ beyond yesterday → inactive (no future / no today)
+     if (date > todayDate) {
+       statusClass = 'status-bar-inactive';
+       title += ' | Not available yet';
+     } else {
+
+       const dayData = downtimes.find(d =>
+         d.service_id === serviceData.id && d.day === dayStr
+       );
+
+       if (!dayData) {
+         statusClass = 'status-bar-online';
+         title += ' | 100% uptime';
+       } else {
+         const downtime = dayData.total_downtime_ms || 0;
+         const uptimePercent = Math.max(0, 100 - (downtime / MS_IN_DAY) * 100).toFixed(2);
+
+         statusClass =
+           dayData.status === 'green' ? 'status-bar-online' :
+           dayData.status === 'red' ? 'status-bar-offline' :
+           'status-bar-degraded';
+
+         title += ' | Uptime: ' + uptimePercent + '% | Downtime: ' + (downtime / 60000).toFixed(1) + ' min';
+       }
+     }
+%>
+  <div class="status-bar-day <%= statusClass %>" title="<%= title %>"></div>
+<% } %>
+</div>
+  </div>
+
+  <h3 class="text-gray uppercase" style="font-size: 0.875rem; margin: 0; padding: 10px 5px;">
+    Additional Information
+  </h3>
+
+  <div class="desc-grid">
+  <div class="desc-tile">
+    <div class="desc-tile-label">Registered</div>
+    <div class="desc-tile-value">
+      <%= new Date(initialConnect).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+      at
+      <%= new Date(initialConnect).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) %>
+    </div>
+  </div>
+  <div class="desc-tile">
+    <div class="desc-tile-label">Average latency</div>
+    <div class="desc-tile-value green">35ms</div>
+  </div>
+</div>
+
+  <div style="display: flex; justify-content: flex-end;">
+  <a href="/status/id" class="logs-btn">
+    View full logs <span class="logs-btn-arrow">↗</span>
+  </a>
+</div>
+</div>
         </div>
         <% }) %>
 
@@ -462,13 +573,13 @@
           // Remove services not in the response with fade-out
           const currentComponents = container.querySelectorAll('.component');
           currentComponents.forEach(component => {
-          if (!receivedKeys.has(component.id)) {
-            serviceCounter.innerText = parseInt(serviceCounter.innerText) - 1;
-            const wrapper = component.closest('.summary-content') || component;
-            wrapper.classList.add('fade-out');
-            setTimeout(() => wrapper.remove(), 800);
-          }
-        });
+            if (!receivedKeys.has(component.id)) {
+              serviceCounter.innerText = parseInt(serviceCounter.innerText) - 1;
+              const wrapper = component.closest('.summary-content') || component;
+              wrapper.classList.add('fade-out');
+              setTimeout(() => wrapper.remove(), 800);
+            }
+          });
 
           if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0) {
             const noServiceDiv = document.getElementsByClassName("no-services")[0];
