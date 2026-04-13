@@ -22,9 +22,13 @@
       --status-degraded-color: #a16207;
       --status-down-color: #b91c1c;
 
+      --status-inactive-color: #c9c7c7;
+
       --status-operational-bg: #D1FAE5;
       --status-degraded-bg: #fef9c3;
       --status-down-bg: #fee2e2;
+
+      --text-gray: #525c6e;
     }
 
     body {
@@ -41,6 +45,20 @@
       text-align: center;
     }
 
+    .description-details {
+      background-color: #f9fafb;
+      color: #4b5563;
+      padding: 0.75rem;
+    }
+
+    .description-details p {
+      margin: 0;
+    }
+
+    .m-0 {
+      margin: 0;
+    }
+
     .container {
       border-radius: 10px;
     }
@@ -50,21 +68,41 @@
       margin: 2rem auto;
     }
 
+    .summary-content {
+      margin: 13px 0px 10px;
+    }
+
+    .logs-btn {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1e40af;
+      background: #eff6ff;
+      border: 0.5px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 6px 14px;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    .logs-btn:hover { opacity: 0.8; }
+
     .component {
       display: flex;
       align-items: center;
-      padding: 1rem;
-      cursor: help;
+      padding: 1rem 1rem 0.5rem 1rem;
       flex-wrap: wrap;
 
       border-radius: 10px;
       background-color: white;
-      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05);
-      margin: 13px 0 10px;
+      /* box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05); */
     }
 
     .component:last-child {
       border-bottom: none;
+    }
+
+    .component:hover {
+      filter: invert(2%);
+      cursor: pointer;
     }
 
     .info-block {
@@ -83,7 +121,7 @@
     }
 
     .uptime-badge {
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .status {
@@ -121,11 +159,11 @@
     }
 
     .fade-in {
-      animation: fadeIn 0.4s ease-out;
+      animation: fadeIn 0.8s ease-out;
     }
 
     .fade-out {
-      animation: fadeOut 0.4s ease-out;
+      animation: fadeOut 0.8s ease-out;
     }
 
     @keyframes blink {
@@ -162,6 +200,10 @@
       background-color: var(--status-down-color);
     }
 
+    .dot.inactive {
+      background-color: var(--status-inactive-color);
+    }
+
     .status-operational {
       background-color: var(--status-operational-bg);
       color: var(--status-operational-color);
@@ -187,7 +229,6 @@
       min-width: 1.4em;
       border-radius: 50%;
       font-size: 0.7em;
-
     }
 
     h2 {
@@ -204,10 +245,108 @@
       border-top: 1px dotted #ddd;
     }
 
-    .no-services{
+    .no-services {
       background-color: white;
       padding: 1rem;
       border-radius: 20px;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .information-section {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .information-section svg {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      transition: 0.3s;
+    }
+
+    .details-content {
+      background-color: white;
+      max-height: 1000px;
+      transition: max-height 0.4s ease-in-out;
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      border-bottom-right-radius: 10px;
+      border-bottom-left-radius: 10px;
+    }
+
+    .text-gray {
+      color: var(--text-gray);
+    }
+
+    .status-bar-grid {
+      display: grid;
+      grid-template-columns: repeat(30, minmax(0, 1fr));
+      gap: 2px;
+      height: 24px;
+      background-color: #e5e7eb;
+      padding: 3px;
+      border-radius: 0.25rem;
+    }
+
+    .status-bar {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .expanded {
+      padding: 0rem 1rem 1rem 1rem !important;
+    }
+
+    .status-bar-online {
+      background-color: #22c55e;
+    }
+
+    .status-bar-offline {
+      background-color: #ef4444;
+    }
+
+    .desc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.desc-tile {
+  background: #f5f5f4; /* or your gray-50 equivalent */
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.desc-tile-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+.desc-tile-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+.desc-tile-value.green { color: #3B6D11; }
+
+    .status-bar-degraded {
+      background-color: #f59e0b;
+    }
+
+    .status-bar-inactive {
+      background-color: #c9c7c7;
     }
 
     @media (max-width: 600px) {
@@ -243,61 +382,191 @@
       </h2>
     </div>
 
-    <div class="container" id="service-container">
-      <% if (Object.keys(service).length> 0) { %>
-        <% Object.keys(service).forEach(key=> {
-          const { serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText } =
-          service[key];
-          %>
-          <div class="component" id="<%= key %>" title="<%= serviceDescription || 'No description provided' %>">
-            <div class="info-block">
-              <!-- Service name with icon -->
-              <span class="service-name">
-                <%= key %>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="bi bi-info-circle" style="margin-left: 6px;" viewBox="0 0 16 16">
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                    <path
-                      d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
-                  </svg>
-              </span>
-
-              <div class="status status-<%= status %>">
-                <span class="dot <%= status %>"></span>
-                <span class="status-text">
-                  <%= statusText %>
-                </span>
-              </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="information-section">
-              <% if (onlineSinceHumanReadable) { %>
-                <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
-                <% } else { %>
-                  <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
-                  <% } %>
-            </div>
-
-          </div>
-          <% }) %>
-            <% } else { %>
-              <div class="no-services">
-                No registered services found, <a href="/docs/register">register your first service.</a>
-              </div>
-              <% } %>
+    <div class="no-services <%= Object.keys(service).length > 0 ? 'hidden' : 'show' %>">
+      No registered services found, <a href="/docs/register">register your first service.</a>
     </div>
+
+    <div class="container" id="service-container">
+      <% Object.keys(service).forEach(key=> {
+        const { initialConnect, serviceDescription, onlineSinceHumanReadable, lastSeenHumanReadable, status, statusText
+        }
+        =
+        service[key];
+        %>
+        <div class="summary-content">
+          <% console.log(initialConnect) %>
+            <div class="component" onclick="openComponent(this)" id="<%= key %>"
+              title="<%= serviceDescription || 'No description provided' %>">
+              <div class="info-block">
+                <!-- Service name with icon -->
+                <span class="service-name">
+                  <%= key %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                      class="bi bi-info-circle" style="margin-left: 6px;" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                      <path
+                        d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                    </svg>
+                </span>
+
+                <div class="status status-<%= status %>">
+                  <span class="dot <%= status %>"></span>
+                  <span class="status-text">
+                    <%= statusText %>
+                  </span>
+                </div>
+              </div>
+
+              <hr class="divider">
+
+              <div class="information-section">
+                <% if (onlineSinceHumanReadable) { %>
+                  <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
+                  <% } else { %>
+                    <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
+                    <% } %>
+
+                      <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+              </div>
+            </div>
+
+            <div class="details-content">
+  <div class="status-bar-grid-container">
+    <h3 style="margin: 0; padding: 10px 5px; font-size: 0.875rem;" class="text-gray">
+      Recent Uptime (Last 30 Days)
+    </h3>
+
+    <div class="status-bar-grid">
+<% const MS_IN_DAY = 86400000;
+   const serviceData = service[key];
+
+   const registeredDate = new Date(serviceData.initialConnect);
+   const today = new Date();
+
+   // 🔒 validate registration date
+   const isValid = !isNaN(registeredDate.getTime());
+
+   // normalize dates (remove time)
+   const startDate = isValid
+     ? new Date(registeredDate.toISOString().split('T')[0])
+     : new Date(today);
+
+   const todayDate = new Date(today.toISOString().split('T')[0]);
+
+   for (let i = 0; i < 30; i++) {
+
+     const date = new Date(startDate);
+     date.setDate(startDate.getDate() + i);
+
+     const dayStr = date.toISOString().split('T')[0];
+
+     let statusClass = '';
+     let title = dayStr;
+
+     // ❌ beyond yesterday → inactive (no future / no today)
+     if (date > todayDate) {
+       statusClass = 'status-bar-inactive';
+       title += ' | Not available yet';
+     } else {
+
+       const dayData = downtimes.find(d =>
+         d.service_id === serviceData.id && d.day === dayStr
+       );
+
+       if (!dayData) {
+         statusClass = 'status-bar-online';
+         title += ' | 100% uptime';
+       } else {
+         const downtime = dayData.total_downtime_ms || 0;
+         const uptimePercent = Math.max(0, 100 - (downtime / MS_IN_DAY) * 100).toFixed(2);
+
+         statusClass =
+           dayData.status === 'green' ? 'status-bar-online' :
+           dayData.status === 'red' ? 'status-bar-offline' :
+           'status-bar-degraded';
+
+         title += ' | Uptime: ' + uptimePercent + '% | Downtime: ' + (downtime / 60000).toFixed(1) + ' min';
+       }
+     }
+%>
+  <div class="status-bar-day <%= statusClass %>" title="<%= title %>"></div>
+<% } %>
+</div>
+  </div>
+
+  <h3 class="text-gray uppercase" style="font-size: 0.875rem; margin: 0; padding: 10px 5px;">
+    Additional Information
+  </h3>
+
+  <div class="desc-grid">
+  <div class="desc-tile">
+    <div class="desc-tile-label">Registered</div>
+    <div class="desc-tile-value">
+      <%= new Date(initialConnect).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+      at
+      <%= new Date(initialConnect).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) %>
+    </div>
+  </div>
+  <div class="desc-tile">
+    <div class="desc-tile-label">Average latency</div>
+    <div class="desc-tile-value green">35ms</div>
+  </div>
+</div>
+
+  <div style="display: flex; justify-content: flex-end;">
+  <a href="/status/id" class="logs-btn">
+    View full logs <span class="logs-btn-arrow">↗</span>
+  </a>
+</div>
+</div>
+        </div>
+        <% }) %>
+
+    </div>
+  </div>
   </div>
 
   <script>
     const serviceCounter = document.getElementById("total-services-count");
-    let noServicesEverAdded = true; 
+    const detailedView = true;
+    let noServicesEverAdded = true;
+
+    if (detailedView) {
+      const contentArray = document.getElementsByClassName("summary-content");
+      for (let i = 0; i < contentArray.length; i++) {
+        const element = contentArray[i];
+
+        const component = element.querySelector(".component");
+        const arrow = component.querySelector(".arrow");
+
+        const detailsContent = element.querySelector(".details-content");
+
+        detailsContent.classList.add("expanded");
+        arrow.style.transform = "rotate(90deg)";
+      }
+    }
+
+    function openComponent(element) {
+      const arrow = element.querySelector(".arrow");
+      const contentDetails = element.nextElementSibling
+      const isOpen = contentDetails.classList.contains("expanded");
+
+      if (isOpen) {
+        contentDetails.style.maxHeight = "0px";
+        setTimeout(() => { contentDetails.classList.remove("expanded") }, 400)
+      } else {
+        contentDetails.style.maxHeight = "1000px";
+        contentDetails.classList.add("expanded");
+      }
+    }
 
     function fetchStatus() {
       fetch('/api/status')
         .then(response => response.json())
-        .then(services => { 
+        .then(services => {
           const container = document.getElementById('service-container');
           const receivedKeys = new Set(Object.keys(services));
 
@@ -306,14 +575,15 @@
           currentComponents.forEach(component => {
             if (!receivedKeys.has(component.id)) {
               serviceCounter.innerText = parseInt(serviceCounter.innerText) - 1;
-              component.classList.add('fade-out');
-              setTimeout(() => component.remove(), 400);
+              const wrapper = component.closest('.summary-content') || component;
+              wrapper.classList.add('fade-out');
+              setTimeout(() => wrapper.remove(), 800);
             }
           });
 
-          if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0){
+          if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0) {
             const noServiceDiv = document.getElementsByClassName("no-services")[0];
-            noServiceDiv.style.display = "block";
+            noServiceDiv.classList.replace("hidden", "show")
             noServiceDiv.innerHTML = "No registered services found, <a href='/docs/register'>register one?</a>"
           }
 
@@ -330,7 +600,7 @@
               noServiceDiv = document.getElementsByClassName("no-services")[0];
 
               if (noServiceDiv) {
-                noServiceDiv.style.display = "none";
+                noServiceDiv.classList.replace("show", "hidden");
               }
 
               const div = document.createElement('div');
@@ -338,14 +608,11 @@
               div.id = key;
               div.title = service.serviceDescription || 'No description provided';
 
-              // handle ctrl + click
-              div.addEventListener("click", goToWebsite)
-
               let uptimeBadge = '';
               if (service.onlineSinceHumanReadable) {
                 uptimeBadge = `<span class="uptime-badge">🕒 Online for ${service.onlineSinceHumanReadable}</span>`;
               } else {
-                uptimeBadge = `<span class="uptime-badge">❌ Offline for ${service.lastSeenHumanReadable}</span>`;
+                uptimeBadge = `<span class="uptime-badge">⚠️ Offline for ${service.lastSeenHumanReadable}</span>`;
               }
 
               div.innerHTML = `

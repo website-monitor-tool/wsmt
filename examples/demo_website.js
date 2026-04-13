@@ -1,4 +1,4 @@
-import { WsmtClient } from '../build/index.js';
+import { WsmtClient } from '../build/client.js';
 import http from 'http';
 
 // A demo website that serves1 'Hello World' when you visit any path and crashes when

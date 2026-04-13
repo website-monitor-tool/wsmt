@@ -40,6 +40,7 @@
         });
 
         this.ws.onopen = () => {
+          console.log('onopen fired');
           this.isConnected = true;
 
           if (this.options.serviceDescription) {
@@ -55,6 +56,7 @@
         };
 
         this.ws.onerror = (err) => {
+          console.error('WebSocket error:', err.message);
           reject(err);
         };
 
@@ -81,6 +83,7 @@
     };
 
     disconnect = (): void => {
+      console.log(`closing gracefully, cs func called, ${this.ws} ${this.isConnected}`)
       if (this.ws && this.isConnected) {
         this.ws.close(1000, 'Normal closure');
         this.isConnected = false;
