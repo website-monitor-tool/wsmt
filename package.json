@@ -1,7 +1,7 @@
 {
   "name": "website-monitor-tool",
   "type": "module",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "moduleResolution": "nodenext",
   "description": "Web socket powered tool to alert if a website goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
