@@ -113,6 +113,10 @@ export const getServiceDailyStatus = () => {
       ) as total_downtime_ms,
 
       CASE
+        -- 🔴 If currently down → always offline
+        WHEN MAX(CASE WHEN down_to IS NULL THEN 1 ELSE 0 END) = 1 THEN 'offline'
+
+        -- 🟢 No downtime at all
         WHEN SUM(
           CASE 
             WHEN down_to IS NOT NULL THEN down_to - down_from
@@ -120,6 +124,7 @@ export const getServiceDailyStatus = () => {
           END
         ) = 0 THEN 'online'
 
+        -- 🔴 Fully down all day
         WHEN SUM(
           CASE 
             WHEN down_to IS NOT NULL THEN down_to - down_from
@@ -127,6 +132,7 @@ export const getServiceDailyStatus = () => {
           END
         ) >= 86400000 THEN 'offline'
 
+        -- 🟡 Partial issues
         ELSE 'degraded'
       END as status
 
