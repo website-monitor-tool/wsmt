@@ -484,8 +484,8 @@
          const uptimePercent = Math.max(0, 100 - (downtime / MS_IN_DAY) * 100).toFixed(2);
 
          statusClass =
-           dayData.status === 'green' ? 'status-bar-online' :
-           dayData.status === 'red' ? 'status-bar-offline' :
+           dayData.status === 'online' ? 'status-bar-online' :
+           dayData.status === 'offline' ? 'status-bar-offline' :
            'status-bar-degraded';
 
          title += ' | Uptime: ' + uptimePercent + '% | Downtime: ' + (downtime / 60000).toFixed(1) + ' min';
