@@ -40,7 +40,6 @@
         });
 
         this.ws.onopen = () => {
-          console.log('onopen fired');
           this.isConnected = true;
 
           if (this.options.serviceDescription) {

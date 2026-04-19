@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(9435, async () => {
-  console.log('🟢 Server listening at http://localhost:9435');
+  console.log('Server listening at http://localhost:9435');
 
   const wsmt = new WsmtClient({
     name: 'demo_website_1',

@@ -421,9 +421,26 @@
 
               <div class="information-section">
                 <% if (onlineSinceHumanReadable) { %>
-                  <span class="uptime-badge">🕒 Online for <%= onlineSinceHumanReadable %></span>
+                  <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <svg width="20" height="20" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 22 Q17 8 30 22" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M9 28 Q17 20 25 28" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="17" cy="34" r="2.5" fill="#1D9E75"/>
+                  </svg>
+                  Online for <%= onlineSinceHumanReadable %>
+                </span>
                   <% } else { %>
-                    <span class="uptime-badge">❌ Offline for <%= lastSeenHumanReadable %></span>
+
+
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+  <svg width="20" height="20" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 22 Q17 8 30 22" stroke="currentColor" stroke-opacity="0.4" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M9 28 Q17 20 25 28" stroke="currentColor" stroke-opacity="0.4" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="17" cy="34" r="2.5" fill="currentColor" fill-opacity="0.4"/>
+    <line x1="2" y1="36" x2="32" y2="6" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+  Offline for <%= lastSeenHumanReadable %>
+</span>
                     <% } %>
 
                       <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -434,6 +451,8 @@
             </div>
 
             <div class="details-content">
+
+    <% if (isPersistent) { %>
   <div class="status-bar-grid-container">
     <h3 style="margin: 0; padding: 10px 5px; font-size: 0.875rem;" class="text-gray">
       Recent Uptime (Last 30 Days)
@@ -446,10 +465,8 @@
    const registeredDate = new Date(serviceData.initialConnect);
    const today = new Date();
 
-   // 🔒 validate registration date
    const isValid = !isNaN(registeredDate.getTime());
 
-   // normalize dates (remove time)
    const startDate = isValid
      ? new Date(registeredDate.toISOString().split('T')[0])
      : new Date(today);
@@ -466,7 +483,7 @@
      let statusClass = '';
      let title = dayStr;
 
-     // ❌ beyond yesterday → inactive (no future / no today)
+     // beyond yesterday → inactive (no future / no today)
      if (date > todayDate) {
        statusClass = 'status-bar-inactive';
        title += ' | Not available yet';
@@ -496,6 +513,8 @@
 <% } %>
 </div>
   </div>
+
+  <% } %>
 
   <h3 class="text-gray uppercase" style="font-size: 0.875rem; margin: 0; padding: 10px 5px;">
     Additional Information
@@ -609,11 +628,28 @@
               div.title = service.serviceDescription || 'No description provided';
 
               let uptimeBadge = '';
-              if (service.onlineSinceHumanReadable) {
-                uptimeBadge = `<span class="uptime-badge">🕒 Online for ${service.onlineSinceHumanReadable}</span>`;
-              } else {
-                uptimeBadge = `<span class="uptime-badge">⚠️ Offline for ${service.lastSeenHumanReadable}</span>`;
-              }
+if (service.onlineSinceHumanReadable) {
+  uptimeBadge = `
+    <span class="uptime-badge">
+      <svg width="16" height="18" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 22 Q17 8 30 22" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M9 28 Q17 20 25 28" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="17" cy="34" r="2.5" fill="#1D9E75"/>
+      </svg>
+      Online for ${service.onlineSinceHumanReadable}
+    </span>`;
+} else {
+  uptimeBadge = `
+    <span class="uptime-badge">
+      <svg width="16" height="18" viewBox="0 0 34 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 22 Q17 8 30 22" stroke="currentColor" stroke-opacity="0.4" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M9 28 Q17 20 25 28" stroke="currentColor" stroke-opacity="0.4" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="17" cy="34" r="2.5" fill="currentColor" fill-opacity="0.4"/>
+        <line x1="2" y1="36" x2="32" y2="6" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      Offline for ${service.lastSeenHumanReadable}
+    </span>`;
+}
 
               div.innerHTML = `
       <div class="info-block">
@@ -656,15 +692,13 @@
 
     const goToWebsite = (event) => {
       if (event.ctrlkey || event.metaKey) {
-        console.log("TODO: Goto website. Need to get data from client to check if website and the URL.");
+        console.log("TODO: goto website.");
       }
     }
 
     matches.forEach((result) => {
       result.addEventListener("click", goToWebsite);
     });
-
-
   </script>
 
 </body>
