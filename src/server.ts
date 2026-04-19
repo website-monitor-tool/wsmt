@@ -345,6 +345,13 @@ export class Wsmt {
     }
   }
 
+  /** returns if persistence has been enabled
+  * @returns {boolean} isPersistent
+  */
+  get isPersistent(): boolean{
+    return this.options.persistData ?? false;
+  }
+
   /** returns the status of websites being monitored
    * @returns {object} statuses
    */

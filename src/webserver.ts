@@ -31,13 +31,14 @@ export function createWebServer(wsmt: any): Express {
     const downtimes = getServiceDailyStatus();
 
     console.log('downtimes:', downtimes);
-  console.log('services:', services);
+    console.log('services:', services);
 
     res.render('status', {
       headerStatus: 'System Monitor Tool | Powered by wasmt',
       service: services,
       count,
       downtimes,
+      isPersistent: wsmt.isPersistent
     });
   });
 

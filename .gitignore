@@ -1,12 +1,12 @@
 node_modules
 
-#spell checker
+# spell checker
 .cspell
 
-#vscode related
+# vscode related
 .vscode 
 
-#builds
+# builds
 build/
 
 # misc
@@ -17,3 +17,6 @@ blueprint.png
 
 # tgz
 *.tgz
+
+# todo
+todo.txt
