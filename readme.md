@@ -5,6 +5,8 @@ This is a very early version, expect bugs.
 Keeping track of multiple websites can be an excruciating task, this library takes the weight from your shoulders. It also includes an
 optional status page dashboard so that you can monitor everything from a single spot! Works with your favorite language!
 
+<img src="/images/dashboard.png" alt="showing the dashboard with statuses indicated using coloured boxes">
+
 Currently supported package manager:
 
 - NPM (JavaScript/Node.js) (Official)
@@ -13,7 +15,10 @@ Coming soon:
 
 - Python (PyPI)
 - Support for additional package managers
-
+- one shot installation script for linux
+<!-- # Features
+- Websocket powered 
+- Dashboard with status history and incident logs -->
 # Working
 This library leverages authenticated WebSocket connections to stream live status updates between the backend and connected clients.
 
@@ -26,15 +31,80 @@ When a failure is detected it can be configured to notify you via webhooks, disc
 
 All client connections must be authenticated using tokens, making the system secure by default. The optional dashboard visualize real-time service status, uptime, and failure events—instantly and efficiently.
 
-# Setup
-1) Install from github with your preferred package manager
+---
+
+## Getting Started
+
+You need to run the server component first.
+
+### 1. Create a Server
+
+Create a new folder for your server:
+
 ```bash
-pnpm install https://github.com/NihalNavath/website-monitor-tool
+mkdir wsmt-server
+cd wsmt-server
+npm init -y
+npm install website-monitor-tool
 ```
-OR
+
+---
+
+### 2. Create an Entry File
+
+Create a file called `index.js`:
+
+```js
+const { Wsmt } = require("website-monitor-tool");
+
+const wsmt = new Wsmt({
+  port: 1234, // Port for the monitoring server
+  password: <your-secure-password>,
+  persistData: true, // Save monitored data
+  webServerOptions: {
+    enabled: true, // Enable status dashboard
+    port: 1010     // Dashboard port
+  },
+  callback: (name) => {
+    console.log(`Status changed for: ${name}`);
+  }
+});
+
+wsmt.init();
+```
+
+---
+
+### 3. Run the Server
+
 ```bash
-npm install https://github.com/NihalNavath/website-monitor-tool`
+node index.js
 ```
+
+---
+
+## Configuration Options
+
+| Option | Description |
+|--------|-------------|
+| `port` | Port used by the monitoring server |
+| `password` | Authentication password (use a strong one) |
+| `persistData` | Whether to save monitoring data |
+| `webServerOptions.enabled` | Enable/disable web dashboard |
+| `webServerOptions.port` | Port for dashboard UI |
+| `callback` | Function triggered when status changes |
+
+---
+
+## Notes
+
+- Make sure the ports you choose are not already in use.
+- If you're self-hosting, ensure your firewall allows incoming connections.
+- Use a strong password if exposing the server publicly.
+
+---
+
+ 
 
 ## TODO: Tell about prettier and eslint for other devs
 
