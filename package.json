@@ -5,7 +5,11 @@
   "moduleResolution": "nodenext",
   "description": "web socket powered tool to alert if a service goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
-  "main": "build/index.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./client": "./build/client.js",
+    "./server": "./build/server.js"
+  },
   "scripts": {
     "dev:ts": "tsc --watch",
     "dev:server": "nodemon examples/mothership.js --debug server",
