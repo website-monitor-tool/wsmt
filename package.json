@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.2.4",
   "moduleResolution": "nodenext",
-  "description": "Web socket powered tool to alert if a website goes down.",
+  "description": "web socket powered tool to alert if a service goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
   "main": "build/index.js",
   "scripts": {
