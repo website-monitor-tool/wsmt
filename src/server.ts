@@ -11,8 +11,10 @@ import jwt from 'jsonwebtoken';
 import { createWebServer } from './webserver.js';
 const { verify } = jwt;
 import debug from 'debug';
-import { loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getServiceDailyStatus, setCleanClose, resetCleanClose } from './persistence/database.js';
+import { initDatabase, loadAllStatuses, saveStatus, registerDowntime, closeDowntime, getServiceDailyStatus, setCleanClose, resetCleanClose } from './persistence/database.js';
+
 const log = debug('wsmt:server');
+
 
 if (process.argv.includes('--debug')) {
   const validScopes = ['server', '*'];
@@ -29,8 +31,8 @@ if (process.argv.includes('--debug')) {
 }
 
 interface StatusWebServerOptions {
-  enabled?: boolean;
-  port?: number;
+  enabled?: boolean; 
+  port?: number; 
   basePath?: string;
 }
 
@@ -39,6 +41,7 @@ interface ConstructorOptions {
   port: number
   password: string
   persistData: boolean
+  dbPath?: string;
   webServerOptions?: StatusWebServerOptions;
   callback: (name: string) => void
 }
@@ -79,7 +82,12 @@ export class Wsmt {
     this.callback = options.callback;
     //this.strictMode = false;
     this.recallInterval = undefined;
-    // start the status checker
+
+    // Initialise the database connection early so the path is locked in
+    // before any query runs. Safe to call multiple times — only opens once.
+    if (options.persistData) {
+      initDatabase(options.dbPath);
+    }
 
     // log(this.websiteStatus)
     // setInterval(() => {
@@ -231,7 +239,6 @@ export class Wsmt {
           try {
             const lastSeen = Date.now();
 
-            console.log("GOT DCCCCCCCCCCCCCCCCC", code)
             if (code === 1000) {
               log(`normal closure from ${socket.name}`);
               const entry = DBdata.find(item => item.name === socket.name);
@@ -296,8 +303,6 @@ export class Wsmt {
       callback(new Error('Invalid token'), null);
     }
   }
-
-
 
   remove_record(name: string): boolean {
     return delete this.statuses[name];

@@ -4,16 +4,29 @@ import { setup } from "./setup-db.js"
 let running = false;
 
 const connectToDB = (path?: string) => {
-    const db = new Database(path || "./wsmt.db");
-    db.pragma("journal_mode = WAL");
+    const instance = new Database(path || "./wsmt.db");
+    instance.pragma("journal_mode = WAL");
 
-    setup(db);
+    setup(instance);
 
     running = true;
-    return db;
+    return instance;
 }
 
-const db = connectToDB();
+let db: ReturnType<typeof connectToDB> | null = null;
+
+/** Must be called once before any other db function when using a custom path. */
+export const initDatabase = (path?: string): void => {
+    if (!db) {
+        db = connectToDB(path);
+    }
+};
+
+/** Returns the db instance, initialising with the default path if needed. */
+const getDb = () => {
+    if (!db) db = connectToDB();
+    return db;
+};
 
 // export const getAllSavedServices = () => {
 //     const stmt = db.prepare(`
@@ -44,7 +57,7 @@ export const registerDowntime = (
   service_id: number,
   down_from: number
 ) => {
-  const openDowntime = db.prepare(`
+  const openDowntime = getDb().prepare(`
     SELECT id FROM downtimes
     WHERE service_id = ?
     AND down_to IS NULL
@@ -56,7 +69,7 @@ export const registerDowntime = (
     return;
   }
 
-  const insertStmt = db.prepare(`
+  const insertStmt = getDb().prepare(`
     INSERT INTO downtimes (service_id, down_from, down_to)
     VALUES (?, ?, NULL)
   `);
@@ -67,7 +80,7 @@ export const closeDowntime = (
   service_id: number,
   down_to: number
 ) => {
-  const openDowntime = db.prepare(`
+  const openDowntime = getDb().prepare(`
     SELECT id FROM downtimes
     WHERE service_id = ?
     AND down_to IS NULL
@@ -79,7 +92,7 @@ export const closeDowntime = (
     throw new Error(`No open downtime found for service ${service_id} to close.`);
   }
 
-  const updateStmt = db.prepare(`
+  const updateStmt = getDb().prepare(`
     UPDATE downtimes
     SET down_to = ?
     WHERE id = ?
@@ -88,19 +101,19 @@ export const closeDowntime = (
 };
 
 export const setCleanClose = (service_id: number) => {
-  db.prepare(`
+  getDb().prepare(`
     UPDATE services SET clean_close = 1 WHERE id = ?
   `).run(service_id);
 };
 
 export const resetCleanClose = (service_id: number) => {
-  db.prepare(`
+  getDb().prepare(`
     UPDATE services SET clean_close = 0 WHERE id = ?
   `).run(service_id);
 };
 
 export const getServiceDailyStatus = () => {
-  const stmt = db.prepare(`
+  const stmt = getDb().prepare(`
     SELECT 
       service_id,
       DATE(datetime(down_from / 1000, 'unixepoch')) as day,
@@ -146,7 +159,7 @@ export const getServiceDailyStatus = () => {
 
 
 export const saveStatus = (name: string, initial_connection_ms: number) => {
-    const stmt = db.prepare(`
+    const stmt = getDb().prepare(`
         INSERT INTO services (name, initial_connection_ms)
         VALUES (?, ?)
     `);
@@ -159,7 +172,7 @@ export const saveStatus = (name: string, initial_connection_ms: number) => {
 }
 
 export const loadAllStatuses = () => {
-  return db.prepare(`
+  return getDb().prepare(`
     SELECT 
       s.*,
       d.down_from as last_downtime_ms
@@ -172,7 +185,7 @@ export const loadAllStatuses = () => {
 }
 
 export const getOpenDowntime = (service_id: number): { down_from: number } | undefined => {
-  return db.prepare(`
+  return getDb().prepare(`
     SELECT down_from FROM downtimes
     WHERE service_id = ?
     AND down_to IS NULL
