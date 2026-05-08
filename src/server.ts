@@ -169,9 +169,8 @@ export class Wsmt {
         log(`A new connection from ${socket.name}`);
 
         // refresh DB data to check if new services were added after the class has been initialized.
-        // unnecessary repetition of code, its late night and I just want this to work for now lol.
+        // unnecessary repetition of code
         DBdata = this.reloadCache()["serviceResult"]
-        console.log(DBdata)
         AllServiceNamesInDB = DBdata.map(row => row.name)
 
         DBdata.forEach(entry => {
@@ -224,6 +223,8 @@ export class Wsmt {
           try {
             const msg = JSON.parse(data.toString());
             if (msg.type === "service-description") {
+              // cap description length
+              const desc = String(msg.serviceDescription ?? '').slice(0, 512); 
               this.statuses[socket.name].serviceDescription = msg.serviceDescription
               log(`Client ${socket.name} described: ${msg.serviceDescription}`);
             }
@@ -295,6 +296,12 @@ export class Wsmt {
 
       const token = authHeader?.split(' ')[1];
       const decoded = verify(token, this.SERVER_SECRET_KEY) as JwtPayload;
+
+      // validate name
+      const nameRegex = /^[a-zA-Z0-9_\-]{1,64}$/;
+      if (!nameRegex.test(decoded.name)) {
+        return callback(new Error('Invalid service name'), null);
+      }
 
       const client = { name: decoded.name };
       callback(null, client);
