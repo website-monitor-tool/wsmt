@@ -225,8 +225,8 @@ export class Wsmt {
             if (msg.type === "service-description") {
               // cap description length
               const desc = String(msg.serviceDescription ?? '').slice(0, 512); 
-              this.statuses[socket.name].serviceDescription = msg.serviceDescription
-              log(`Client ${socket.name} described: ${msg.serviceDescription}`);
+              this.statuses[socket.name].serviceDescription = desc
+              log(`Client ${socket.name} described: ${desc}`);
             }
           } catch (err) {
             console.error('message handler threw:', err);
