@@ -15,7 +15,6 @@ import { initDatabase, loadAllStatuses, saveStatus, registerDowntime, closeDownt
 
 const log = debug('wsmt:server');
 
-
 if (process.argv.includes('--debug')) {
   const validScopes = ['server', '*'];
   const passedScopes = process.argv[process.argv.indexOf('--debug') + 1] || '*';
