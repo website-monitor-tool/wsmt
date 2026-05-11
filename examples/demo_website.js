@@ -1,7 +1,7 @@
 import { WsmtClient } from '../build/client.js';
 import http from 'http';
 
-// A demo website that serves1 'Hello World' when you visit any path and crashes when
+// A demo website that serves 'Hello World' when you visit any path and crashes when
 // you visit /crash
 const server = http.createServer((req, res) => {
   if (req.url.split('/')[1] === 'crash') {
@@ -29,8 +29,8 @@ server.listen(9435, async () => {
 
   try {
     await wsmt.connect();
-    console.log('🌐 Visit http://localhost:9435/crash to simulate a crash!');
+    console.log('Visit http://localhost:9435/crash to simulate a crash!');
   } catch (err) {
-    console.error('❌ WSMT connection failed:', err.message);
+    console.error('WSMT connection failed:', err.message);
   }
 });

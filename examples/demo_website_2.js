@@ -1,7 +1,7 @@
 import express from 'express';
 import { WsmtClient } from '../build/client.js';
 
-const wsmtClient = await new WsmtClient({  
+await new WsmtClient({  
   name: 'demo_website_2',
   secret: 'se$curePwD%^&',
   serviceDescription: "Express powered website.",
