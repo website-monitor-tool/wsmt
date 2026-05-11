@@ -5,10 +5,20 @@
   "moduleResolution": "nodenext",
   "description": "web socket powered tool to alert if a service goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
+  "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./client": "./build/client.js",
-    "./server": "./build/server.js"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
+    "./client": {
+      "types": "./build/client.d.ts",
+      "import": "./build/client.js"
+    },
+    "./server": {
+      "types": "./build/server.d.ts",
+      "import": "./build/server.js"
+    }
   },
   "scripts": {
     "dev:ts": "tsc --watch",
@@ -26,7 +36,7 @@
     "demo:site2": "node examples/demo_website_2.js",
     "comment": "change the demo script, sometimes server starts later then the sites",
     "demo": "pnpm run build && concurrently \"pnpm run demo:server\" \"pnpm run demo:site1\" \"pnpm run demo:site2\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/smoke.test.js"
   },
   "keywords": [
     "down detector",
@@ -48,7 +58,7 @@
       "better-sqlite3"
     ]
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
@@ -75,14 +85,14 @@
     "prettier": "3.2.5",
     "supports-color": "^10.2.2",
     "ts-node": "^10.9.2",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "ncp": "^2.0.0"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
     "ejs": "^3.1.10",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "ncp": "^2.0.0",
     "pretty-ms": "^8.0.0",
     "ws": "^8.20.0"
   }

@@ -29,14 +29,14 @@ if (process.argv.includes('--debug')) {
   log(`enabled debug mode with the following scopes:- ${passedScopes.split(" ")}`)
 }
 
-interface StatusWebServerOptions {
+export interface StatusWebServerOptions {
   enabled?: boolean; 
   port?: number; 
   basePath?: string;
 }
 
 // put password checking, min limit and maybe special chars?
-interface ConstructorOptions {
+export interface WsmtOptions {
   port: number
   password: string
   persistData: boolean
@@ -44,6 +44,20 @@ interface ConstructorOptions {
   webServerOptions?: StatusWebServerOptions;
   callback: (name: string) => void
 }
+
+export interface WebsiteStatusEntry {
+  id?: number;
+  initialConnect: number;
+  available: boolean;
+  status: string;
+  statusText: string;
+  serviceDescription?: string;
+  onlineSinceHumanReadable: string;
+  lastSeen: number | "";
+  lastSeenHumanReadable: string;
+}
+
+export type WebsiteStatus = Record<string, WebsiteStatusEntry>;
 
 interface JwtPayload {
   name: string
@@ -68,12 +82,12 @@ export class Wsmt {
   private wss?: WebSocketServer;
   private statuses: Record<string, any>;
   private _running: boolean = false;
-  public address: string | AddressInfo | undefined;
-  public callback: (name: string) => void;
+  private address: string | AddressInfo | undefined;
+  private callback: (name: string) => void;
   private SERVER_SECRET_KEY: string;
-  recallInterval: number | undefined;
+  private recallInterval: number | undefined;
 
-  constructor(private options: ConstructorOptions) {
+  constructor(private options: WsmtOptions) {
     this.statuses = {};
     this._running = true;
     this.address = undefined;
@@ -206,7 +220,6 @@ export class Wsmt {
         const entry = DBdata.find(item => item.name === socket.name);
         this.statuses[socket.name].id = entry?.id;
         if (this.options.persistData && entry) {
-          console.log("reseting clean close")
           resetCleanClose(entry.id);
         }
 
@@ -286,7 +299,7 @@ export class Wsmt {
     return true;
   }
 
-  authenticate(request: any, callback: (err: Error | null, client: any) => void) {
+  private authenticate(request: any, callback: (err: Error | null, client: any) => void) {
     try {
       const authHeader = request.headers['authorization'];
 
@@ -310,11 +323,11 @@ export class Wsmt {
     }
   }
 
-  remove_record(name: string): boolean {
+  private remove_record(name: string): boolean {
     return delete this.statuses[name];
   }
 
-  set_password(password: string): void {
+  private set_password(password: string): void {
     this.SERVER_SECRET_KEY = password;
   }
 
@@ -339,7 +352,6 @@ export class Wsmt {
 
     const AllServiceNamesInDB = serviceResult.map(row => row.name);
 
-    console.log(AllServiceNamesInDB)
 
     return {
       AllServiceNamesInDB,
@@ -366,7 +378,7 @@ export class Wsmt {
   /** returns the status of websites being monitored
    * @returns {object} statuses
    */
-  get websiteStatus(): object {
+  get websiteStatus(): WebsiteStatus {
     /**
      * Returns the status of the websites being monitored by the WebSocket server.
      * @returns {object} an object with the website URLs as keys and the status objects as values.
@@ -377,7 +389,7 @@ export class Wsmt {
      */
     const now = Date.now();
 
-    const result: Record<string, any> = {};
+    const result: WebsiteStatus = {};
     for (const [site, data] of Object.entries(this.statuses)) {
       const diffMs = now - data.lastSeen;
       const statusText = this.getStatusText(data.status)

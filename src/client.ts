@@ -1,16 +1,16 @@
   import { WebSocket } from 'ws';
   import jwt from 'jsonwebtoken';
 
-  interface Address {
+  export interface WsmtClientAddress {
     ip: string;
     port: number;
   }
 
-  interface ClientConstructorOptions {
+  export interface WsmtClientOptions {
     name: string;
     secret: string;
     serviceDescription?: string,
-    address: Address;
+    address: WsmtClientAddress;
     recallInterval?: number;
     // strictMode: boolean; > TODO: If strict mode is enabled, prevent the website from running unless the status checker is connected.
   }
@@ -20,7 +20,7 @@
     private exitCallAmount = 0;
     private isConnected = false;
 
-    constructor(private options: ClientConstructorOptions) { }
+    constructor(private options: WsmtClientOptions) { }
 
     connect = (): Promise<void> => {
       return new Promise((resolve, reject) => {

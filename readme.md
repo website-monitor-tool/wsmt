@@ -55,7 +55,7 @@ npm install website-monitor-tool
 Create a file called `index.js`:
 
 ```js
-const { Wsmt } = require("website-monitor-tool");
+import { Wsmt } from "website-monitor-tool"
 
 const wsmt = new Wsmt({
   port: 1234, // Port for the monitoring server
