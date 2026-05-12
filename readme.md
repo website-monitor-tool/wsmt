@@ -2,7 +2,7 @@
 This is a very early version, expect bugs and rapid development.
 
 # About
-Keeping track of multiple services and ensuring they stay online shouldn’t be a hassle. This library helps you monitor uptime, performance, and outages with ease. It includes an optional status page dashboard, giving you a centralized view of all your services in one place. Powered by authenticated WebSocket connections for secure, real-time monitoring — and best of all, it’s fully open source. Works with your favorite language and is designed to be plug-and-play, requiring only a few lines of code to get everything up and running.
+Keeping track of multiple services and ensuring they stay online shouldn’t be a hassle. This library provides secure, real-time service monitoring powered by authenticated WebSocket connections. An optional status page dashboard gives you a centralized view of uptime, performance metrics, and outages across all your services. Fully open source and designed to be plug-and-play, it works with your favorite language and only takes a few lines of code to get started.
 
 <img src="/images/dashboard.png" alt="showing the dashboard with statuses indicated using coloured boxes">
 
@@ -81,6 +81,12 @@ wsmt.init();
 ```bash
 node index.js
 ```
+cool! you now have the server component running that listens to connections! Now lets connect clients.
+
+---
+### Examples
+
+Please see the [examples](/examples/) to see more demos.
 
 ---
 

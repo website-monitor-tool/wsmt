@@ -6,6 +6,10 @@
   "description": "web socket powered tool to alert if a service goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
   "types": "./build/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:website-monitor-tool/wsmt.git"
+  },
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
