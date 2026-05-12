@@ -1,9 +1,8 @@
 ### (Incomplete readme)
-This is a very early version, expect bugs.
+This is a very early version, expect bugs and rapid development.
 
 # About
-Keeping track of multiple websites can be an excruciating task, this library takes the weight from your shoulders. It also includes an
-optional status page dashboard so that you can monitor everything from a single spot! Works with your favorite language!
+Keeping track of multiple services and ensuring they stay online shouldn’t be a hassle. This library helps you monitor uptime, performance, and outages with ease. It includes an optional status page dashboard, giving you a centralized view of all your services in one place. Powered by authenticated WebSocket connections for secure, real-time monitoring — and best of all, it’s fully open source. Works with your favorite language and is designed to be plug-and-play, requiring only a few lines of code to get everything up and running.
 
 <img src="/images/dashboard.png" alt="showing the dashboard with statuses indicated using coloured boxes">
 
@@ -20,12 +19,14 @@ Coming soon:
 - Websocket powered 
 - Dashboard with status history and incident logs -->
 # Working
-This library leverages authenticated WebSocket connections to stream live status updates between the backend and connected clients.
 
-Each monitored website establishes a connection with a centralized server which leverages authenticated websockets to monitor its status
-Clean closures (ctrl + c) are recognized and respected!
+This library uses authenticated WebSocket connections to stream live status updates between monitored services and connected clients in real time.
 
-When a failure is detected it can be configured to notify you via webhooks, discord, email or a custom callback!
+Each service establishes a secure authenticated WebSocket connection with the monitoring server, allowing the system to continuously track uptime and connection health with minimal overhead.
+
+Clean shutdowns (such as `CTRL + C`) are detected and handled gracefully, so intentional stops aren’t treated as crashes or outages.
+
+When a failure or unexpected disconnect is detected, a callback is triggered, allowing you to run your own custom notification logic — whether that’s sending alerts through webhooks, Discord, email, Slack, or anything else you want.
 
 #### Security
 
