@@ -1,7 +1,7 @@
 {
   "name": "website-monitor-tool",
   "type": "module",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "moduleResolution": "nodenext",
   "description": "web socket powered tool to alert if a service goes down.",
   "extends": "@tsconfig/node16/tsconfig.json",
@@ -16,11 +16,10 @@
       "import": "./build/index.js"
     },
     "./client": {
-      "types": "./build/client.d.ts",
+      "types": "./build/client.d.ts", 
       "import": "./build/client.js"
     },
-    "./server": {
-      "types": "./build/server.d.ts",
+    "./server": { 
       "import": "./build/server.js"
     }
   },

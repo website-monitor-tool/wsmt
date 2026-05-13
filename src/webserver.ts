@@ -30,11 +30,11 @@ export function createWebServer(wsmt: any): Express {
     const count = Object.keys(services).length;
     const downtimes = getServiceDailyStatus();
 
-    console.log('downtimes:', downtimes);
-    console.log('services:', services);
+    // console.log('downtimes:', downtimes);
+    // console.log('services:', services);
 
     res.render('status', {
-      headerStatus: 'System Monitor Tool | Powered by wasmt',
+      headerStatus: 'Service Monitor Tool | Powered by <a href="https://www.npmjs.com/package/website-monitor-tool" style="color: #22c55e;">WSMT</a>',
       service: services,
       count,
       downtimes,

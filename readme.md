@@ -81,7 +81,36 @@ wsmt.init();
 ```bash
 node index.js
 ```
-cool! you now have the server component running that listens to connections! Now lets connect clients.
+
+Nice! The server component is now running and listening for client connections. Next, connect a service to it.
+
+---
+
+### 4. Connect a Client
+
+In the service you want to monitor, install the package:
+
+```bash
+npm install website-monitor-tool
+```
+
+Then connect it to your monitoring server:
+
+```js
+import { WsmtClient } from "website-monitor-tool/client";
+
+const wsmtClient = new WsmtClient({
+  name: "my_service",
+  secret: "<your-secure-password>",
+  serviceDescription: "My monitored service.",
+  address: {
+    ip: "127.0.0.1",
+    port: 1234
+  },
+});
+
+await wsmtClient.connect();
+```
 
 ---
 ### Examples

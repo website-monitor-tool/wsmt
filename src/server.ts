@@ -132,12 +132,7 @@ export class Wsmt {
       DBdata.forEach(entry => {
         if (entry.clean_close) return;
 
-        this.statuses[entry.name] = {
-          id: entry.id,  // add this
-          initialConnect: entry.initialConnect,
-          status: entry.last_downtime_ms ? "down" : "operational",
-          lastSeen: entry.last_downtime_ms ?? undefined,
-        };
+        this.hydrateStatusFromDatabase(entry);
       });
 
       log("Following services has been loaded from the database", AllServiceNamesInDB);
@@ -190,12 +185,7 @@ export class Wsmt {
         DBdata.forEach(entry => {
           if (entry.clean_close) return;
 
-          this.statuses[entry.name] = {
-            id: entry.id,  // add this
-            initialConnect: entry.initialConnect,
-            status: entry.last_downtime_ms ? "down" : "operational",
-            lastSeen: entry.last_downtime_ms ?? undefined,
-          };
+          this.hydrateStatusFromDatabase(entry);
         });
 
         // end of repeated code
@@ -342,6 +332,18 @@ export class Wsmt {
 
   private fetchDatabaseServices() {
     return loadAllStatuses() as StatusEntry[];
+  }
+
+  private hydrateStatusFromDatabase(entry: StatusEntry) {
+    const currentStatus = this.statuses[entry.name] ?? {};
+
+    this.statuses[entry.name] = {
+      ...currentStatus,
+      id: entry.id,
+      initialConnect: entry.initialConnect,
+      status: entry.last_downtime_ms ? "down" : "operational",
+      lastSeen: entry.last_downtime_ms ?? undefined,
+    };
   }
 
   private reloadCache() {

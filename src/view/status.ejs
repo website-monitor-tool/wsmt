@@ -369,7 +369,7 @@
     <h1>WASM Monitor Tool</h1>
     <% if (headerStatus) { %>
       <p>
-        <%= headerStatus %>
+        <%- headerStatus %>
       </p>
       <% } %>
   </header>
@@ -383,7 +383,7 @@
     </div>
 
     <div class="no-services <%= Object.keys(service).length > 0 ? 'hidden' : 'show' %>">
-      No registered services found, <a href="/docs/register">register your first service.</a>
+      No registered services found, <a href="https://github.com/website-monitor-tool/wsmt#4-connect-a-client">register your first service.</a>
     </div>
 
     <div class="container" id="service-container">
@@ -394,7 +394,6 @@
         service[key];
         %>
         <div class="summary-content">
-          <% console.log(initialConnect) %>
             <div class="component" onclick="openComponent(this)" id="<%= key %>"
               title="<%= serviceDescription || 'No description provided' %>">
               <div class="info-block">
@@ -531,7 +530,7 @@
   </div>
   <div class="desc-tile">
     <div class="desc-tile-label">Average latency</div>
-    <div class="desc-tile-value green">35ms</div>
+    <div class="desc-tile-value green">-- ms</div>
   </div>
 </div>
 
@@ -603,7 +602,7 @@
           if (receivedKeys.size == 0 && !noServicesEverAdded && Object.keys(services).length == 0) {
             const noServiceDiv = document.getElementsByClassName("no-services")[0];
             noServiceDiv.classList.replace("hidden", "show")
-            noServiceDiv.innerHTML = "No registered services found, <a href='/docs/register'>register one?</a>"
+            noServiceDiv.innerHTML = "No registered services found, <a href='https://github.com/website-monitor-tool/wsmt#4-connect-a-client'>register one?</a>"
           }
 
           // Add or update services
