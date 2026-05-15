@@ -45,6 +45,30 @@
       text-align: center;
     }
 
+    .header-title {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0;
+    }
+
+    .beta-ribbon {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
     .description-details {
       background-color: #f9fafb;
       color: #4b5563;
@@ -366,7 +390,10 @@
 <body>
 
   <header>
-    <h1>WASM Monitor Tool</h1>
+    <h1 class="header-title">
+      WASM Monitor Tool
+      <!-- <span class="beta-ribbon" title="Early beta: many changes are coming soon, including alerts, Discord notifications, and webhook calls.">Early Beta</span> -->
+    </h1>
     <% if (headerStatus) { %>
       <p>
         <%- headerStatus %>
@@ -464,18 +491,31 @@
    const registeredDate = new Date(serviceData.initialConnect);
    const today = new Date();
 
-   const isValid = !isNaN(registeredDate.getTime());
+   const todayDate = new Date(Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate()
+  ));
 
-   const startDate = isValid
-     ? new Date(registeredDate.toISOString().split('T')[0])
-     : new Date(today);
+  const registeredDay = !isNaN(registeredDate.getTime())
+    ? new Date(Date.UTC(
+        registeredDate.getUTCFullYear(),
+        registeredDate.getUTCMonth(),
+        registeredDate.getUTCDate()
+      ))
+    : null;
 
-   const todayDate = new Date(today.toISOString().split('T')[0]);
+  const rollingStartDate = new Date(todayDate);
+  rollingStartDate.setUTCDate(todayDate.getUTCDate() - 29);
+
+  const startDate = registeredDay && registeredDay > rollingStartDate
+    ? new Date(registeredDay)
+    : new Date(rollingStartDate);
 
    for (let i = 0; i < 30; i++) {
 
      const date = new Date(startDate);
-     date.setDate(startDate.getDate() + i);
+     date.setUTCDate(startDate.getUTCDate() + i);
 
      const dayStr = date.toISOString().split('T')[0];
 
@@ -485,7 +525,10 @@
      // beyond yesterday → inactive (no future / no today)
      if (date > todayDate) {
        statusClass = 'status-bar-inactive';
-       title += ' | Not available yet';
+       title += ' | No data available yet';
+     } else if (registeredDay && date < registeredDay) {
+       statusClass = 'status-bar-inactive';
+       title += ' | Not registered yet';
      } else {
 
        const dayData = downtimes.find(d =>
