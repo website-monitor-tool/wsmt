@@ -304,11 +304,11 @@ export class Wsmt {
       const token = authHeader?.split(' ')[1];
       const decoded = verify(token, this.SERVER_SECRET_KEY) as JwtPayload;
 
-      // validate name
-      const nameRegex = /^[a-zA-Z0-9_\-]{1,64}$/;
-      if (!nameRegex.test(decoded.name)) {
-        return callback(new Error('Invalid service name'), null);
-      }
+      // // validate name
+      // const nameRegex = /^[a-zA-Z0-9_\-]{1,64}$/;
+      // if (!nameRegex.test(decoded.name)) {
+      //   return callback(new Error('Invalid service name'), null);
+      // }
 
       const client = { name: decoded.name };
       callback(null, client);

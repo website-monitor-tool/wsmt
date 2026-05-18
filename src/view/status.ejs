@@ -624,6 +624,17 @@
       }
     }
 
+    function replaceChars(s) {
+      const replace = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&#039;",
+        "<": "&lt;",
+        ">": "&gt;",
+      };
+      return s.replace(/[&"'<>]/g, (c) => replace[c]);
+    }
+
     function fetchStatus() {
       fetch('/api/status')
         .then(response => response.json())
@@ -695,7 +706,7 @@ if (service.onlineSinceHumanReadable) {
 
               div.innerHTML = `
       <div class="info-block">
-        <span class="service-name">${key}</span>
+        <span class="service-name">${replaceChars(key)}</span>
         <div class="status status-${service.status}">
         <span class="dot ${service.status}"></span>
         <span class="status-text">${service.statusText}</span>
